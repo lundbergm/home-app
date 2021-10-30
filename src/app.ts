@@ -1,6 +1,6 @@
-import express from 'express';
 import { ApolloServer } from 'apollo-server-express';
-
+import express from 'express';
+import morgan from 'morgan';
 import { BooksProvider } from './provider';
 import { resolvers, typeDefs } from './resolver';
 
@@ -12,6 +12,7 @@ export interface Context {
 
 export default async function createApp(): Promise<express.Express> {
     const app = express();
+    app.use(morgan('tiny'));
 
     // This is where we define the dataSources which can be
     // used to retrieve data from the resolvers.
