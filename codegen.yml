@@ -1,13 +1,13 @@
 overwrite: true
 schema:
-  './src/**/*.ts':
-    noRequire: true
+    './src/**/*.ts':
+        noRequire: true
 documents: null
 generates:
-  src/generated/graphql.ts:
-    config:
-      contextType: ../index#Context
-    plugins:
-      - add: '/* tslint:disable */'
-      - 'typescript'
-      - 'typescript-resolvers'
+    src/generated/graphql.ts:
+        config:
+            contextType: ../app#Context
+        plugins:
+            - add: '/* tslint:disable */'
+            - 'typescript'
+            - 'typescript-resolvers'
