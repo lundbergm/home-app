@@ -1,12 +1,12 @@
 import { ApolloServer } from 'apollo-server-express';
 import express from 'express';
 import morgan from 'morgan';
-import { BooksProvider } from './provider';
-import { resolvers, typeDefs } from './resolver';
+import { TestProvider } from './graphql/provider';
+import graphqlResolvers, { typeDefs } from './graphql/resolver';
 
 export interface Context {
     dataSources: {
-        booksProvider: BooksProvider;
+        testProvider: TestProvider;
     };
 }
 
@@ -18,22 +18,23 @@ export default async function createApp(): Promise<express.Express> {
     // used to retrieve data from the resolvers.
     const dataSources = (): Context['dataSources'] => {
         return {
-            booksProvider: new BooksProvider()
+            testProvider: new TestProvider(),
         };
     };
+    const resolvers = graphqlResolvers();
 
     const server = new ApolloServer({
         typeDefs,
         // @ts-ignore (FIXME: should be casted to default Resolvers type?)
         resolvers,
-        dataSources
+        dataSources,
     });
 
     await server.start();
 
     server.applyMiddleware({
         app,
-        path: '/api/graphql'
+        path: '/api/graphql',
     });
 
     return app;
