@@ -1,7 +1,11 @@
 import createApp from './app';
+import config from './config';
 
 async function main() {
-    const app = await createApp();
+    if (config.mockMode) {
+        console.warn('---- MOCK MODE ----');
+    }
+    const app = await createApp(config);
     app.listen({ port: 4000 }, () => {
         console.info(`🚀 Server ready at port 4000.`); // tslint:disable-line no-console
     });

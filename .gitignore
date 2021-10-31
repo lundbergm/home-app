@@ -4,4 +4,6 @@
 /tmp
 /dist
 
+.env
+
 *.log
