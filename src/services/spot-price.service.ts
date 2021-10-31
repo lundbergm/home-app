@@ -1,10 +1,10 @@
 import NodeCache from 'node-cache';
 import TibberConnector from '../connectors/tibber.connector';
 import {
-    SpotPriceCollection,
     Interval,
-    TimeSlot,
     PriceLevel,
+    SpotPriceCollection,
+    TimeSlot,
 } from '../models/models';
 
 enum CacheKey {
@@ -35,9 +35,7 @@ export default class SpotPriceService {
         return this.getData(CacheKey.TomorrowsSpotPrices);
     }
 
-    public async getHeatingSchedule(
-        interval: Interval,
-    ): Promise<Array<TimeSlot>> {
+    public async getHeatingSchedule(interval: Interval): Promise<TimeSlot[]> {
         let spotPrices: SpotPriceCollection | undefined;
         switch (interval) {
             case Interval.Today: {
@@ -96,10 +94,10 @@ export default class SpotPriceService {
     }
 }
 
-function calculateSchedule(spotPrices: SpotPriceCollection): Array<TimeSlot> {
+function calculateSchedule(spotPrices: SpotPriceCollection): TimeSlot[] {
     spotPrices.sort((a, b) => b.energy - a.energy);
 
-    let schedule: Array<TimeSlot> = spotPrices.map((spotPrice, index) => {
+    const schedule: TimeSlot[] = spotPrices.map((spotPrice, index) => {
         return {
             startsAt: spotPrice.startsAt,
             level: spotPrice.level,

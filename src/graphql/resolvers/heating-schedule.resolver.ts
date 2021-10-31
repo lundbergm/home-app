@@ -1,4 +1,4 @@
-import { TimeSlot, QueryHeatingScheduleArgs } from '../../generated/graphql';
+import { QueryHeatingScheduleArgs, TimeSlot } from '../../generated/graphql';
 import SpotPriceService from '../../services/spot-price.service';
 
 export default class HeatingScheduleResolver {
@@ -11,7 +11,7 @@ export default class HeatingScheduleResolver {
         _parent: unknown,
         args: QueryHeatingScheduleArgs,
         _context: unknown,
-    ): Promise<Array<TimeSlot>> => {
+    ): Promise<TimeSlot[]> => {
         return this.spotPriceService.getHeatingSchedule(args.interval);
     };
 }

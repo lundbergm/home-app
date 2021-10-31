@@ -2,10 +2,11 @@ import { ApolloServer } from 'apollo-server-express';
 import express from 'express';
 import morgan from 'morgan';
 import { AppConfig } from './config';
+import GpioConnector from './connectors/gpio.connector';
 import TibberConnector from './connectors/tibber.connector';
 import graphqlResolvers from './graphql';
-import typeDefs from './graphql/schema.graphql';
 import { TestProvider } from './graphql/provider';
+import typeDefs from './graphql/schema.graphql';
 import SpotPriceService from './services/spot-price.service';
 
 export interface Context {
@@ -27,6 +28,8 @@ export default async function createApp(
         config.tibber.accessToken,
         config.mockMode,
     );
+    const gpioConnector = new GpioConnector();
+    gpioConnector.setHeatingCartridge(true);
     /* SERVICES */
     const spotPriceService = new SpotPriceService(tibberConnector);
 
