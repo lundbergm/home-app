@@ -7,11 +7,14 @@
     "main": "build/main/index.js",
     "typings": "build/main/index.d.ts",
     "scripts": {
+        "build": "tsc",
         "fix": "run-s fix:*",
         "fix:prettier": "prettier \"src/**/*.ts\" --write --loglevel warn",
         "fix:tslint": "tslint --fix --project .",
         "generate:types": "graphql-codegen --config codegen.yml",
         "start": "ts-node-dev --transpile-only src/index.ts",
+        "start:mock": "MOCK_MODE=true ts-node-dev --transpile-only src/index.ts",
+        "start:prd": "node build/main/index.js",
         "test": "run-s test:*",
         "test:lint": "tslint --project . && prettier \"src/**/*.ts\" --list-different",
         "test:types": "tsc -p . --noEmit"
