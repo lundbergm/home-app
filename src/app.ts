@@ -31,7 +31,10 @@ export default async function createApp(
     const gpioConnector = new GpioConnector();
     gpioConnector.setHeatingCartridge(true);
     /* SERVICES */
-    const spotPriceService = new SpotPriceService(tibberConnector);
+    const spotPriceService = new SpotPriceService(
+        tibberConnector,
+        gpioConnector,
+    );
 
     // This is where we define the dataSources which can be
     // used to retrieve data from the resolvers.

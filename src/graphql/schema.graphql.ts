@@ -15,6 +15,15 @@ const typeDefs = gql`
         heatingSchedule(interval: Interval!): [TimeSlot!]!
     }
 
+    type Mutation {
+        setHeatingCartridge(state: State!): State!
+    }
+
+    enum State {
+        ON
+        OFF
+    }
+
     type TimeSlot {
         "The start time of the time slot"
         startsAt: String!

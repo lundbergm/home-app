@@ -1,4 +1,5 @@
 import NodeCache from 'node-cache';
+import GpioConnector from '../connectors/gpio.connector';
 import TibberConnector from '../connectors/tibber.connector';
 import {
     Interval,
@@ -16,7 +17,10 @@ export default class SpotPriceService {
     private readonly spotPriceCache: NodeCache;
     private cacheDate: Date;
 
-    constructor(private readonly tibberConnector: TibberConnector) {
+    constructor(
+        private readonly tibberConnector: TibberConnector,
+        private readonly gpioConnector: GpioConnector,
+    ) {
         this.cacheDate = new Date();
         this.spotPriceCache = new NodeCache({ stdTTL: 0, useClones: false });
     }
@@ -51,6 +55,10 @@ export default class SpotPriceService {
             throw new Error('Data unavailable');
         }
         return calculateSchedule(spotPrices);
+    }
+
+    public setHeatingCartridge(state: boolean): void {
+        this.gpioConnector.setHeatingCartridge(state);
     }
 
     private async getData(

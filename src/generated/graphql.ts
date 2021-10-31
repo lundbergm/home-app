@@ -22,6 +22,16 @@ export enum Interval {
   Tomorrow = 'TOMORROW'
 }
 
+export type Mutation = {
+  __typename?: 'Mutation';
+  setHeatingCartridge: State;
+};
+
+
+export type MutationSetHeatingCartridgeArgs = {
+  state: State;
+};
+
 export enum PriceLevel {
   /** The price is greater than 90 % and smaller than 115 % compared to average price. */
   Normal = 'NORMAL',
@@ -67,6 +77,11 @@ export type SpotPrice = {
   /** The price level compared to recent price values. */
   level: PriceLevel;
 };
+
+export enum State {
+  On = 'ON',
+  Off = 'OFF'
+}
 
 export type Test = {
   __typename?: 'Test';
@@ -155,12 +170,14 @@ export type DirectiveResolverFn<TResult = {}, TParent = {}, TContext = {}, TArgs
 /** Mapping between all available schema types and the resolvers types */
 export type ResolversTypes = {
   Interval: Interval;
+  Mutation: ResolverTypeWrapper<{}>;
   PriceLevel: PriceLevel;
   Query: ResolverTypeWrapper<{}>;
   Int: ResolverTypeWrapper<Scalars['Int']>;
   SpotPrice: ResolverTypeWrapper<SpotPrice>;
   Float: ResolverTypeWrapper<Scalars['Float']>;
   String: ResolverTypeWrapper<Scalars['String']>;
+  State: State;
   Test: ResolverTypeWrapper<Test>;
   TimeSlot: ResolverTypeWrapper<TimeSlot>;
   Boolean: ResolverTypeWrapper<Scalars['Boolean']>;
@@ -168,6 +185,7 @@ export type ResolversTypes = {
 
 /** Mapping between all available schema types and the resolvers parents */
 export type ResolversParentTypes = {
+  Mutation: {};
   Query: {};
   Int: Scalars['Int'];
   SpotPrice: SpotPrice;
@@ -176,6 +194,10 @@ export type ResolversParentTypes = {
   Test: Test;
   TimeSlot: TimeSlot;
   Boolean: Scalars['Boolean'];
+};
+
+export type MutationResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']> = {
+  setHeatingCartridge?: Resolver<ResolversTypes['State'], ParentType, ContextType, RequireFields<MutationSetHeatingCartridgeArgs, 'state'>>;
 };
 
 export type QueryResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = {
@@ -207,6 +229,7 @@ export type TimeSlotResolvers<ContextType = Context, ParentType extends Resolver
 };
 
 export type Resolvers<ContextType = Context> = {
+  Mutation?: MutationResolvers<ContextType>;
   Query?: QueryResolvers<ContextType>;
   SpotPrice?: SpotPriceResolvers<ContextType>;
   Test?: TestResolvers<ContextType>;
