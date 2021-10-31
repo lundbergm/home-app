@@ -117,7 +117,6 @@ export default class TibberConnector {
                 response.data.data.viewer.home.currentSubscription.priceInfo
                     .tomorrow;
 
-            console.log(spotPrices, tomorrowsSpotPrices);
             return {
                 spotPrices,
                 tomorrowsSpotPrices,

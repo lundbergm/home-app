@@ -11,6 +11,11 @@ export enum PriceLevel {
     VeryExpensive = 'VERY_EXPENSIV',
 }
 
+export enum Interval {
+    Today = 'TODAY',
+    Tomorrow = 'TOMORROW',
+}
+
 export interface SpotPrice {
     total: number;
     energy: number;
@@ -20,3 +25,10 @@ export interface SpotPrice {
 }
 
 export type SpotPriceCollection = SpotPrice[];
+
+export interface TimeSlot {
+    startsAt: string;
+    level: PriceLevel;
+    heatingCartridge: boolean;
+    energy: number;
+}

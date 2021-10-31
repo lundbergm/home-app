@@ -3,7 +3,8 @@ import express from 'express';
 import morgan from 'morgan';
 import { AppConfig } from './config';
 import TibberConnector from './connectors/tibber.connector';
-import graphqlResolvers, { typeDefs } from './graphql';
+import graphqlResolvers from './graphql';
+import typeDefs from './graphql/schema.graphql';
 import { TestProvider } from './graphql/provider';
 import SpotPriceService from './services/spot-price.service';
 

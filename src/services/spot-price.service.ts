@@ -1,6 +1,11 @@
 import NodeCache from 'node-cache';
 import TibberConnector from '../connectors/tibber.connector';
-import { SpotPriceCollection } from '../models/models';
+import {
+    SpotPriceCollection,
+    Interval,
+    TimeSlot,
+    PriceLevel,
+} from '../models/models';
 
 enum CacheKey {
     SpotPrices = 'SPOT_PRICES',
@@ -30,6 +35,26 @@ export default class SpotPriceService {
         return this.getData(CacheKey.TomorrowsSpotPrices);
     }
 
+    public async getHeatingSchedule(
+        interval: Interval,
+    ): Promise<Array<TimeSlot>> {
+        let spotPrices: SpotPriceCollection | undefined;
+        switch (interval) {
+            case Interval.Today: {
+                spotPrices = await this.getSpotPrices();
+                break;
+            }
+            case Interval.Tomorrow: {
+                spotPrices = await this.getTomorrowsSpotPrices();
+                break;
+            }
+        }
+        if (!spotPrices) {
+            throw new Error('Data unavailable');
+        }
+        return calculateSchedule(spotPrices);
+    }
+
     private async getData(
         key: CacheKey,
     ): Promise<SpotPriceCollection | undefined> {
@@ -49,7 +74,6 @@ export default class SpotPriceService {
     }
 
     private async fetchSpotPrices(): Promise<void> {
-        console.log('Fetching data from api');
         const {
             spotPrices,
             tomorrowsSpotPrices,
@@ -70,6 +94,23 @@ export default class SpotPriceService {
             );
         }
     }
+}
+
+function calculateSchedule(spotPrices: SpotPriceCollection): Array<TimeSlot> {
+    spotPrices.sort((a, b) => b.energy - a.energy);
+
+    let schedule: Array<TimeSlot> = spotPrices.map((spotPrice, index) => {
+        return {
+            startsAt: spotPrice.startsAt,
+            level: spotPrice.level,
+            // Never heat when "VERY_EXPENSIVE", don't heat the most expensive 6 hours.
+            heatingCartridge:
+                spotPrice.level !== PriceLevel.VeryExpensive && index >= 6,
+            energy: spotPrice.energy,
+        };
+    });
+
+    return schedule.sort((a, b) => (a.startsAt > b.startsAt ? 1 : -1));
 }
 
 function isToday(date: Date): boolean {
