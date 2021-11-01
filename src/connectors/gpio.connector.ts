@@ -11,6 +11,12 @@ export default class GpioConnector {
         rpio.open(16, rpio.OUTPUT, rpio.LOW);
     }
 
+    public onShutdown = () => {
+        console.log('Closing rpio...');
+        rpio.write(16, rpio.LOW);
+        rpio.exit();
+    };
+
     public setHeatingCartridge(state: boolean) {
         console.log(`Setting pin to ${state}`);
         rpio.write(16, state ? rpio.HIGH : rpio.LOW);

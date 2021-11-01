@@ -17,7 +17,7 @@ export interface Context {
 
 export default async function createApp(
     config: AppConfig,
-): Promise<express.Express> {
+): Promise<{ app: express.Express; shutdownFunctions: Array<() => void> }> {
     const app = express();
     app.use(morgan('tiny'));
 
@@ -59,5 +59,6 @@ export default async function createApp(
         path: '/api/graphql',
     });
 
-    return app;
+    const shutdownFunctions = [gpioConnector.onShutdown];
+    return { app, shutdownFunctions };
 }
