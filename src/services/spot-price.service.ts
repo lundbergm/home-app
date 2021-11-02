@@ -1,12 +1,7 @@
 import NodeCache from 'node-cache';
 import GpioConnector from '../connectors/gpio.connector';
 import TibberConnector from '../connectors/tibber.connector';
-import {
-    Interval,
-    PriceLevel,
-    SpotPriceCollection,
-    TimeSlot,
-} from '../models/models';
+import { Interval, SpotPriceCollection, TimeSlot } from '../models/models';
 
 enum CacheKey {
     SpotPrices = 'SPOT_PRICES',
@@ -105,13 +100,13 @@ export default class SpotPriceService {
 function calculateSchedule(spotPrices: SpotPriceCollection): TimeSlot[] {
     spotPrices.sort((a, b) => b.energy - a.energy);
 
-    const schedule: TimeSlot[] = spotPrices.map((spotPrice, index) => {
+    const schedule: TimeSlot[] = spotPrices.map((spotPrice, _index) => {
         return {
             startsAt: spotPrice.startsAt,
             level: spotPrice.level,
             // Never heat when "VERY_EXPENSIVE", don't heat the most expensive 6 hours.
-            heatingCartridge:
-                spotPrice.level !== PriceLevel.VeryExpensive && index >= 6,
+            heatingCartridge: Math.random() < 0.5,
+            // spotPrice.level !== PriceLevel.VeryExpensive && index >= 6,
             energy: spotPrice.energy,
         };
     });
