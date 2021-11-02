@@ -18,7 +18,9 @@ export default class GpioConnector {
     };
 
     public setHeatingCartridge(state: boolean) {
-        console.log(`Setting pin to ${state}`);
-        rpio.write(16, state ? rpio.HIGH : rpio.LOW);
+        // LOW output gives cartridge on.
+        const gpioState = state ? rpio.LOW : rpio.HIGH;
+        console.log(`Setting pin to ${gpioState}`);
+        rpio.write(16, gpioState);
     }
 }

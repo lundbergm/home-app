@@ -8,7 +8,7 @@ export enum PriceLevel {
     /** The price is greater or equal to 115 % and smaller than 140 % compared to average price. */
     Expensive = 'EXPENSIVE',
     /** The price is greater or equal to 140 % compared to average price. */
-    VeryExpensive = 'VERY_EXPENSIV',
+    VeryExpensive = 'VERY_EXPENSIVE',
 }
 
 export enum Interval {

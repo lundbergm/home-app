@@ -7,6 +7,7 @@ import TibberConnector from './connectors/tibber.connector';
 import graphqlResolvers from './graphql';
 import { TestProvider } from './graphql/provider';
 import typeDefs from './graphql/schema.graphql';
+import Scheduler from './scheduler';
 import SpotPriceService from './services/spot-price.service';
 
 export interface Context {
@@ -29,12 +30,17 @@ export default async function createApp(
         config.mockMode,
     );
     const gpioConnector = new GpioConnector();
-    gpioConnector.setHeatingCartridge(true);
+
     /* SERVICES */
     const spotPriceService = new SpotPriceService(
         tibberConnector,
         gpioConnector,
     );
+
+    /* SCHEDULER */
+    const scheduler = new Scheduler(spotPriceService);
+    scheduler.setup();
+    scheduler.start();
 
     // This is where we define the dataSources which can be
     // used to retrieve data from the resolvers.
@@ -59,6 +65,6 @@ export default async function createApp(
         path: '/api/graphql',
     });
 
-    const shutdownFunctions = [gpioConnector.onShutdown];
+    const shutdownFunctions = [gpioConnector.onShutdown, scheduler.stop];
     return { app, shutdownFunctions };
 }
