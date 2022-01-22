@@ -4,25 +4,29 @@ import TibberConnector from '../connectors/tibber.connector';
 import {
     Interval,
     PriceLevel,
+    Schedule,
     SpotPriceCollection,
-    TimeSlot,
 } from '../models/models';
 
 enum CacheKey {
     SpotPrices = 'SPOT_PRICES',
-    TomorrowsSpotPrices = 'TOMORROWS_SPOT_PRICES_KEY',
+    TomorrowsSpotPrices = 'TOMORROWS_SPOT_PRICES',
 }
 
 export default class SpotPriceService {
     private readonly spotPriceCache: NodeCache;
-    private cacheDate: Date;
+    private readonly scheduleCache: NodeCache;
+    private spotPriceCacheDate: Date;
+    private scheduleCacheDate: Date;
 
     constructor(
         private readonly tibberConnector: TibberConnector,
         private readonly gpioConnector: GpioConnector,
     ) {
-        this.cacheDate = new Date();
+        this.spotPriceCacheDate = new Date();
+        this.scheduleCacheDate = new Date();
         this.spotPriceCache = new NodeCache({ stdTTL: 0, useClones: false });
+        this.scheduleCache = new NodeCache({ stdTTL: 0, useClones: false });
     }
 
     public async getSpotPrices(): Promise<SpotPriceCollection> {
@@ -30,7 +34,7 @@ export default class SpotPriceService {
         if (!spotPrices) {
             throw new Error('Error fetching spot prices from cache.');
         }
-        return spotPrices;
+        return spotPrices.sort((a, b) => (a.startsAt > b.startsAt ? 1 : -1));
     }
 
     public async getTomorrowsSpotPrices(): Promise<
@@ -39,22 +43,26 @@ export default class SpotPriceService {
         return this.getData(CacheKey.TomorrowsSpotPrices);
     }
 
-    public async getHeatingSchedule(interval: Interval): Promise<TimeSlot[]> {
-        let spotPrices: SpotPriceCollection | undefined;
-        switch (interval) {
-            case Interval.Today: {
-                spotPrices = await this.getSpotPrices();
-                break;
+    public async getHeatingSchedule(interval: Interval): Promise<Schedule> {
+        this.validateScheduleCache();
+        if (!this.scheduleCache.has(interval)) {
+            let spotPrices: SpotPriceCollection | undefined;
+            switch (interval) {
+                case Interval.Today: {
+                    spotPrices = await this.getSpotPrices();
+                    break;
+                }
+                case Interval.Tomorrow: {
+                    spotPrices = await this.getTomorrowsSpotPrices();
+                    break;
+                }
             }
-            case Interval.Tomorrow: {
-                spotPrices = await this.getTomorrowsSpotPrices();
-                break;
+            if (!spotPrices) {
+                throw new Error('Data unavailable');
             }
+            this.scheduleCache.set(interval, calculateSchedule(spotPrices));
         }
-        if (!spotPrices) {
-            throw new Error('Data unavailable');
-        }
-        return calculateSchedule(spotPrices);
+        return this.scheduleCache.get(interval) as Schedule;
     }
 
     public setHeatingCartridge(state: boolean): void {
@@ -64,18 +72,26 @@ export default class SpotPriceService {
     private async getData(
         key: CacheKey,
     ): Promise<SpotPriceCollection | undefined> {
-        this.validateCache();
+        this.validateSpotPriceCache();
         if (!this.spotPriceCache.has(key)) {
             await this.fetchSpotPrices();
         }
         return this.spotPriceCache.get(key);
     }
 
-    private validateCache(): void {
-        if (!isToday(this.cacheDate)) {
-            console.log('Cache flushed');
+    private validateSpotPriceCache(): void {
+        if (!isToday(this.spotPriceCacheDate)) {
+            console.log('Spot price cache flushed');
             this.spotPriceCache.flushAll();
-            this.cacheDate = new Date();
+            this.spotPriceCacheDate = new Date();
+        }
+    }
+
+    private validateScheduleCache(): void {
+        if (!isToday(this.scheduleCacheDate)) {
+            console.log('Schedule cache flushed');
+            this.scheduleCache.flushAll();
+            this.scheduleCacheDate = new Date();
         }
     }
 
@@ -102,10 +118,10 @@ export default class SpotPriceService {
     }
 }
 
-function calculateSchedule(spotPrices: SpotPriceCollection): TimeSlot[] {
+function calculateSchedule(spotPrices: SpotPriceCollection): Schedule {
     spotPrices.sort((a, b) => b.energy - a.energy);
 
-    const schedule: TimeSlot[] = spotPrices.map((spotPrice, index) => {
+    const schedule: Schedule = spotPrices.map((spotPrice, index) => {
         return {
             startsAt: spotPrice.startsAt,
             level: spotPrice.level,

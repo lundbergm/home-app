@@ -5,16 +5,11 @@ import { AppConfig } from './config';
 import GpioConnector from './connectors/gpio.connector';
 import TibberConnector from './connectors/tibber.connector';
 import graphqlResolvers from './graphql';
-import { TestProvider } from './graphql/provider';
 import typeDefs from './graphql/schema.graphql';
 import Scheduler from './scheduler';
 import SpotPriceService from './services/spot-price.service';
 
-export interface Context {
-    dataSources: {
-        testProvider: TestProvider;
-    };
-}
+export type Context = Record<string, unknown>;
 
 export default async function createApp(
     config: AppConfig,
@@ -42,20 +37,12 @@ export default async function createApp(
     scheduler.setup();
     scheduler.start();
 
-    // This is where we define the dataSources which can be
-    // used to retrieve data from the resolvers.
-    const dataSources = (): Context['dataSources'] => {
-        return {
-            testProvider: new TestProvider(),
-        };
-    };
     const resolvers = await graphqlResolvers({ spotPriceService });
 
     const server = new ApolloServer({
         typeDefs,
         // @ts-ignore (FIXME: should be casted to default Resolvers type?)
         resolvers,
-        dataSources,
     });
 
     await server.start();

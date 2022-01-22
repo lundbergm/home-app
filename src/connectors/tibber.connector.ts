@@ -110,12 +110,39 @@ export default class TibberConnector {
             if (response.data.errors) {
                 throw new Error(response.data.errors[0].message);
             }
-            const spotPrices =
+            const spotPricesRaw =
                 response.data.data.viewer.home.currentSubscription.priceInfo
                     .today;
-            const tomorrowsSpotPrices =
+            const tomorrowsSpotPricesRaw =
                 response.data.data.viewer.home.currentSubscription.priceInfo
                     .tomorrow;
+
+            const avgPrice = spotPricesRaw.reduce(
+                (avg: number, e: SpotPrice) => (avg += e.energy / 24),
+                0,
+            );
+            const spotPrices = spotPricesRaw.map(e => {
+                const { level, ...rest } = e;
+                return {
+                    ...rest,
+                    level: this.getLevel(avgPrice, e.energy),
+                };
+            });
+            let tomorrowsSpotPrices: SpotPriceCollection | undefined;
+            if (tomorrowsSpotPricesRaw) {
+                const tomorrowAvgPrice = tomorrowsSpotPricesRaw.reduce(
+                    (avg: number, e: SpotPrice) => (avg += e.energy / 24),
+                    0,
+                );
+
+                tomorrowsSpotPrices = tomorrowsSpotPricesRaw.map(e => {
+                    const { level, ...rest } = e;
+                    return {
+                        ...rest,
+                        level: this.getLevel(tomorrowAvgPrice, e.energy),
+                    };
+                });
+            }
 
             return {
                 spotPrices,
@@ -126,6 +153,22 @@ export default class TibberConnector {
         }
     }
 
+    private getLevel(avgPrice: number, price: number): PriceLevel {
+        if (price <= avgPrice * 0.6) {
+            return PriceLevel.VeryCheap;
+        }
+        if (price <= avgPrice * 0.9) {
+            return PriceLevel.Cheap;
+        }
+        if (price <= avgPrice * 1.15) {
+            return PriceLevel.Normal;
+        }
+        if (price <= avgPrice * 1.4) {
+            return PriceLevel.Expensive;
+        }
+        return PriceLevel.VeryExpensive;
+    }
+
     private mockData(): GetPriceInfoResponse {
         return {
             spotPrices: mockSpotPrices as SpotPriceCollection,
@@ -133,3 +176,18 @@ export default class TibberConnector {
         };
     }
 }
+
+// VERY_CHEAP
+// The price is smaller or equal to 60 % compared to average price.
+
+// CHEAP
+// The price is greater than 60 % and smaller or equal to 90 % compared to average price.
+
+// NORMAL
+// The price is greater than 90 % and smaller than 115 % compared to average price.
+
+// EXPENSIVE
+// The price is greater or equal to 115 % and smaller than 140 % compared to average price.
+
+// VERY_EXPENSIVE
+// The price is greater or equal to 140 % compared to average price.

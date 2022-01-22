@@ -26,6 +26,8 @@ export interface SpotPrice {
 
 export type SpotPriceCollection = SpotPrice[];
 
+export type Schedule = TimeSlot[];
+
 export interface TimeSlot {
     startsAt: string;
     level: PriceLevel;

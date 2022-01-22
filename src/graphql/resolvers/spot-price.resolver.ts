@@ -1,4 +1,9 @@
-import { SpotPrice } from '../../generated/graphql';
+import {
+    Interval,
+    QuerySpotPriceArgs,
+    SpotPrice,
+} from '../../generated/graphql';
+import { SpotPriceCollection } from '../../models/models';
 import SpotPriceService from '../../services/spot-price.service';
 
 export default class SpotPriceResolver {
@@ -9,9 +14,12 @@ export default class SpotPriceResolver {
 
     public resolve = async (
         _parent: unknown,
-        _args: unknown,
+        args: QuerySpotPriceArgs,
         _context: unknown,
     ): Promise<SpotPrice[]> => {
-        return this.spotPriceService.getSpotPrices();
+        if (args.interval === Interval.Today) {
+            return this.spotPriceService.getSpotPrices();
+        }
+        return await this.spotPriceService.getTomorrowsSpotPrices() ?? [] as SpotPriceCollection;
     };
 }

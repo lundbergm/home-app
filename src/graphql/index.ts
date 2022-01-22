@@ -22,7 +22,6 @@ export default async function graphqlResolvers(
     );
     return {
         Query: {
-            test: (_, args, ctx) => ctx.dataSources.testProvider.getTest(args),
             spotPrice: spotPriceResolver.resolve,
             heatingSchedule: heatingScheduleResolver.resolve,
         },

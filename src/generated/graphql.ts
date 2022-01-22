@@ -47,7 +47,6 @@ export enum PriceLevel {
 
 export type Query = {
   __typename?: 'Query';
-  test?: Maybe<Test>;
   /** The hourly electrical spot prices. */
   spotPrice: Array<SpotPrice>;
   /** Hourly schedule for how to best use electical power based on price. */
@@ -55,8 +54,8 @@ export type Query = {
 };
 
 
-export type QueryTestArgs = {
-  id: Scalars['Int'];
+export type QuerySpotPriceArgs = {
+  interval: Interval;
 };
 
 
@@ -173,7 +172,6 @@ export type ResolversTypes = {
   Mutation: ResolverTypeWrapper<{}>;
   PriceLevel: PriceLevel;
   Query: ResolverTypeWrapper<{}>;
-  Int: ResolverTypeWrapper<Scalars['Int']>;
   SpotPrice: ResolverTypeWrapper<SpotPrice>;
   Float: ResolverTypeWrapper<Scalars['Float']>;
   String: ResolverTypeWrapper<Scalars['String']>;
@@ -187,7 +185,6 @@ export type ResolversTypes = {
 export type ResolversParentTypes = {
   Mutation: {};
   Query: {};
-  Int: Scalars['Int'];
   SpotPrice: SpotPrice;
   Float: Scalars['Float'];
   String: Scalars['String'];
@@ -201,8 +198,7 @@ export type MutationResolvers<ContextType = Context, ParentType extends Resolver
 };
 
 export type QueryResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = {
-  test?: Resolver<Maybe<ResolversTypes['Test']>, ParentType, ContextType, RequireFields<QueryTestArgs, 'id'>>;
-  spotPrice?: Resolver<Array<ResolversTypes['SpotPrice']>, ParentType, ContextType>;
+  spotPrice?: Resolver<Array<ResolversTypes['SpotPrice']>, ParentType, ContextType, RequireFields<QuerySpotPriceArgs, 'interval'>>;
   heatingSchedule?: Resolver<Array<ResolversTypes['TimeSlot']>, ParentType, ContextType, RequireFields<QueryHeatingScheduleArgs, 'interval'>>;
 };
 

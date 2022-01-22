@@ -2,12 +2,10 @@ import { gql } from 'apollo-server';
 
 const typeDefs = gql`
     type Query {
-        test(id: Int!): Test
-
         """
         The hourly electrical spot prices.
         """
-        spotPrice: [SpotPrice!]!
+        spotPrice(interval: Interval!): [SpotPrice!]!
 
         """
         Hourly schedule for how to best use electical power based on price.
