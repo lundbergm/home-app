@@ -2,7 +2,7 @@ import { CronJob } from 'cron';
 import { Interval } from './models/models';
 import SpotPriceService from './services/spot-price.service';
 
-const EVERY_HOUR = '* * * * * *'; // TODO: FIX
+const EVERY_MINUTE = '* * * * *'; // TODO: FIX
 
 export default class Scheduler {
     private readonly spotPriceService: SpotPriceService;
@@ -13,16 +13,24 @@ export default class Scheduler {
     }
 
     public setup(): void {
-        console.log('running setup');
-        this.setHeatingCartridge = new CronJob(EVERY_HOUR, async () => {
-            const instruction = await this.getCurrentInstruction();
-            console.log(
-                `${new Date().toISOString()}: Setting heating cartrage to ${
-                    instruction ? 'ON' : 'OFF'
-                }`,
-            );
-            this.spotPriceService.setHeatingCartridge(instruction);
-        });
+        console.log('Running cron setup...');
+        this.setHeatingCartridge = new CronJob(
+            EVERY_MINUTE,
+            async () => {
+                const instruction = await this.getCurrentInstruction();
+                console.log(
+                    `${new Date().toISOString()}: Setting heating cartrage to ${
+                        instruction ? 'ON' : 'OFF'
+                    }`,
+                );
+                this.spotPriceService.setHeatingCartridge(instruction);
+            },
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            true,
+        );
     }
 
     public start(): void {
@@ -40,10 +48,11 @@ export default class Scheduler {
             Interval.Today,
         );
         const now = new Date();
+
         // Catch skew
-        if (now.getMinutes() >= 58) {
-            now.setHours(now.getHours() + 1);
-            now.setMinutes(0);
+        if (now.getSeconds() >= 58) {
+            now.setMinutes(now.getMinutes() + 1);
+            now.setSeconds(0);
         }
 
         const timeSlot = schedule.find(
