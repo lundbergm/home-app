@@ -2,7 +2,7 @@ import rpio from 'rpio';
 
 const RELAY_1 = 11;
 const RELAY_2 = 13;
-const RELAY_3 = 16;
+const RELAY_3 = 15;
 const RELAY_4 = 16;
 const LED_GREEN = 29;
 const LED_BLUE = 31;
