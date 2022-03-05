@@ -1,5 +1,5 @@
 import NodeCache from 'node-cache';
-import GpioConnector from '../connectors/gpio.connector';
+import GpioConnector, { LedColor } from '../connectors/gpio.connector';
 import TibberConnector from '../connectors/tibber.connector';
 import {
     Interval,
@@ -67,6 +67,31 @@ export default class SpotPriceService {
 
     public setHeatingCartridge(state: boolean): void {
         this.gpioConnector.setHeatingCartridge(state);
+    }
+
+    public setPriceLed(priceLevel: PriceLevel): void {
+        switch (priceLevel) {
+            case PriceLevel.VeryCheap: {
+                this.gpioConnector.setPriceLed(LedColor.Green);
+                break;
+            }
+            case PriceLevel.Cheap: {
+                this.gpioConnector.setPriceLed(LedColor.Blue);
+                break;
+            }
+            case PriceLevel.Normal: {
+                this.gpioConnector.setPriceLed(LedColor.White);
+                break;
+            }
+            case PriceLevel.Expensive: {
+                this.gpioConnector.setPriceLed(LedColor.Yellow);
+                break;
+            }
+            case PriceLevel.VeryExpensive: {
+                this.gpioConnector.setPriceLed(LedColor.Red);
+                break;
+            }
+        }
     }
 
     private async getData(

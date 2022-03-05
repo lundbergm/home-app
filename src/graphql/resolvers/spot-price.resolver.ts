@@ -20,6 +20,9 @@ export default class SpotPriceResolver {
         if (args.interval === Interval.Today) {
             return this.spotPriceService.getSpotPrices();
         }
-        return await this.spotPriceService.getTomorrowsSpotPrices() ?? [] as SpotPriceCollection;
+        return (
+            (await this.spotPriceService.getTomorrowsSpotPrices()) ??
+            ([] as SpotPriceCollection)
+        );
     };
 }

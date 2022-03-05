@@ -1,4 +1,5 @@
 import { ApolloServer } from 'apollo-server-express';
+import cors from 'cors';
 import express from 'express';
 import morgan from 'morgan';
 import { AppConfig } from './config';
@@ -16,6 +17,7 @@ export default async function createApp(
 ): Promise<{ app: express.Express; shutdownFunctions: Array<() => void> }> {
     const app = express();
     app.use(morgan('tiny'));
+    app.use(cors());
 
     /* CONNECTORS */
     const tibberConnector = new TibberConnector(

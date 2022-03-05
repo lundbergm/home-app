@@ -11,7 +11,7 @@ enum PriceLevel {
     /** The price is greater or equal to 115 % and smaller than 140 % compared to average price. */
     Expensive = 'EXPENSIVE',
     /** The price is greater or equal to 140 % compared to average price. */
-    VeryExpensive = 'VERY_EXPENSIV',
+    VeryExpensive = 'VERY_EXPENSIVE',
 }
 
 interface SpotPrice {
@@ -121,7 +121,7 @@ export default class TibberConnector {
                 (avg: number, e: SpotPrice) => (avg += e.energy / 24),
                 0,
             );
-            const spotPrices = spotPricesRaw.map(e => {
+            const spotPrices = spotPricesRaw.map((e) => {
                 const { level, ...rest } = e;
                 return {
                     ...rest,
@@ -135,7 +135,7 @@ export default class TibberConnector {
                     0,
                 );
 
-                tomorrowsSpotPrices = tomorrowsSpotPricesRaw.map(e => {
+                tomorrowsSpotPrices = tomorrowsSpotPricesRaw.map((e) => {
                     const { level, ...rest } = e;
                     return {
                         ...rest,

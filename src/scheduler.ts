@@ -1,5 +1,5 @@
 import { CronJob } from 'cron';
-import { Interval } from './models/models';
+import { Interval, PriceLevel } from './models/models';
 import SpotPriceService from './services/spot-price.service';
 
 const EVERY_MINUTE = '* * * * *'; // TODO: FIX
@@ -18,12 +18,14 @@ export default class Scheduler {
             EVERY_MINUTE,
             async () => {
                 const instruction = await this.getCurrentInstruction();
+                const level = await this.getCurrentPriceLevel();
                 console.log(
                     `${new Date().toISOString()}: Setting heating cartrage to ${
                         instruction ? 'ON' : 'OFF'
                     }`,
                 );
                 this.spotPriceService.setHeatingCartridge(instruction);
+                this.spotPriceService.setPriceLed(level);
             },
             undefined,
             undefined,
@@ -56,7 +58,7 @@ export default class Scheduler {
         }
 
         const timeSlot = schedule.find(
-            spot => new Date(spot.startsAt).getHours() === now.getHours(),
+            (spot) => new Date(spot.startsAt).getHours() === now.getHours(),
         );
 
         if (!timeSlot) {
@@ -65,5 +67,29 @@ export default class Scheduler {
         console.log(timeSlot);
         const { heatingCartridge } = timeSlot;
         return heatingCartridge;
+    };
+
+    public getCurrentPriceLevel = async (): Promise<PriceLevel> => {
+        const schedule = await this.spotPriceService.getHeatingSchedule(
+            Interval.Today,
+        );
+        const now = new Date();
+
+        // Catch skew
+        if (now.getSeconds() >= 58) {
+            now.setMinutes(now.getMinutes() + 1);
+            now.setSeconds(0);
+        }
+
+        const timeSlot = schedule.find(
+            (spot) => new Date(spot.startsAt).getHours() === now.getHours(),
+        );
+
+        if (!timeSlot) {
+            throw new Error('No valid timeslot found.');
+        }
+
+        const { level } = timeSlot;
+        return level;
     };
 }
