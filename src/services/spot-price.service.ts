@@ -1,12 +1,7 @@
 import NodeCache from 'node-cache';
 import GpioConnector, { LedColor } from '../connectors/gpio.connector';
 import TibberConnector from '../connectors/tibber.connector';
-import {
-    Interval,
-    PriceLevel,
-    Schedule,
-    SpotPriceCollection,
-} from '../models/models';
+import { Interval, PriceLevel, Schedule, SpotPriceCollection } from '../models/models';
 
 enum CacheKey {
     SpotPrices = 'SPOT_PRICES',
@@ -19,10 +14,7 @@ export default class SpotPriceService {
     private spotPriceCacheDate: Date;
     private scheduleCacheDate: Date;
 
-    constructor(
-        private readonly tibberConnector: TibberConnector,
-        private readonly gpioConnector: GpioConnector,
-    ) {
+    constructor(private readonly tibberConnector: TibberConnector, private readonly gpioConnector: GpioConnector) {
         this.spotPriceCacheDate = new Date();
         this.scheduleCacheDate = new Date();
         this.spotPriceCache = new NodeCache({ stdTTL: 0, useClones: false });
@@ -37,9 +29,7 @@ export default class SpotPriceService {
         return spotPrices.sort((a, b) => (a.startsAt > b.startsAt ? 1 : -1));
     }
 
-    public async getTomorrowsSpotPrices(): Promise<
-        SpotPriceCollection | undefined
-    > {
+    public async getTomorrowsSpotPrices(): Promise<SpotPriceCollection | undefined> {
         return this.getData(CacheKey.TomorrowsSpotPrices);
     }
 
@@ -58,7 +48,7 @@ export default class SpotPriceService {
                 }
             }
             if (!spotPrices) {
-                throw new Error('Data unavailable');
+                return [];
             }
             this.scheduleCache.set(interval, calculateSchedule(spotPrices));
         }
@@ -94,14 +84,13 @@ export default class SpotPriceService {
         }
     }
 
-    private async getData(
-        key: CacheKey,
-    ): Promise<SpotPriceCollection | undefined> {
+    private async getData(key: CacheKey): Promise<SpotPriceCollection | undefined> {
         this.validateSpotPriceCache();
         if (!this.spotPriceCache.has(key)) {
+            console.log('Cache miss:', key);
             await this.fetchSpotPrices();
         }
-        return this.spotPriceCache.get(key);
+        return this.spotPriceCache.get(key) || undefined; // Node-cache returns null for undefined
     }
 
     private validateSpotPriceCache(): void {
@@ -121,24 +110,22 @@ export default class SpotPriceService {
     }
 
     private async fetchSpotPrices(): Promise<void> {
-        const {
-            spotPrices,
+        const { spotPrices, tomorrowsSpotPrices } = await this.tibberConnector.getPriceInfo();
+        console.log(
+            'Fetching....',
+            spotPrices.length,
+            tomorrowsSpotPrices?.length || 'nothing here',
             tomorrowsSpotPrices,
-        } = await this.tibberConnector.getPriceInfo();
+            !!tomorrowsSpotPrices,
+        );
 
         this.spotPriceCache.set(CacheKey.SpotPrices, spotPrices);
-        if (!tomorrowsSpotPrices) {
+        if (!tomorrowsSpotPrices || tomorrowsSpotPrices.length === 0) {
             // Set 30 min ttl if data is undefined;
-            this.spotPriceCache.set(
-                CacheKey.TomorrowsSpotPrices,
-                undefined,
-                30 * 60,
-            );
+            console.log('Set empty tomorrow');
+            this.spotPriceCache.set(CacheKey.TomorrowsSpotPrices, undefined, 30 * 60);
         } else {
-            this.spotPriceCache.set(
-                CacheKey.TomorrowsSpotPrices,
-                tomorrowsSpotPrices,
-            );
+            this.spotPriceCache.set(CacheKey.TomorrowsSpotPrices, tomorrowsSpotPrices);
         }
     }
 }
@@ -151,8 +138,7 @@ function calculateSchedule(spotPrices: SpotPriceCollection): Schedule {
             startsAt: spotPrice.startsAt,
             level: spotPrice.level,
             // Never heat when "VERY_EXPENSIVE", don't heat the most expensive 6 hours.
-            heatingCartridge:
-                spotPrice.level !== PriceLevel.VeryExpensive && index >= 6,
+            heatingCartridge: spotPrice.level !== PriceLevel.VeryExpensive && index >= 6,
             energy: spotPrice.energy,
         };
     });

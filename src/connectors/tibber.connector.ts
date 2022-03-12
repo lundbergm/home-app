@@ -46,7 +46,7 @@ interface PriceInfoResponse {
 
 interface GetPriceInfoResponse {
     spotPrices: SpotPriceCollection;
-    tomorrowsSpotPrices: SpotPriceCollection | undefined;
+    tomorrowsSpotPrices: SpotPriceCollection;
 }
 
 export default class TibberConnector {
@@ -77,12 +77,7 @@ export default class TibberConnector {
             }
         }
     `;
-    constructor(
-        private baseUrl: string,
-        private homeId: string,
-        private accessToken: string,
-        private mock: boolean,
-    ) {}
+    constructor(private baseUrl: string, private homeId: string, private accessToken: string, private mock: boolean) {}
 
     public async getPriceInfo(): Promise<GetPriceInfoResponse> {
         if (this.mock) {
@@ -100,27 +95,16 @@ export default class TibberConnector {
         };
 
         try {
-            const response: PriceInfoResponse = await axios.post(
-                this.baseUrl,
-                data,
-                {
-                    headers,
-                },
-            );
+            const response: PriceInfoResponse = await axios.post(this.baseUrl, data, {
+                headers,
+            });
             if (response.data.errors) {
                 throw new Error(response.data.errors[0].message);
             }
-            const spotPricesRaw =
-                response.data.data.viewer.home.currentSubscription.priceInfo
-                    .today;
-            const tomorrowsSpotPricesRaw =
-                response.data.data.viewer.home.currentSubscription.priceInfo
-                    .tomorrow;
+            const spotPricesRaw = response.data.data.viewer.home.currentSubscription.priceInfo.today;
+            const tomorrowsSpotPricesRaw = response.data.data.viewer.home.currentSubscription.priceInfo.tomorrow;
 
-            const avgPrice = spotPricesRaw.reduce(
-                (avg: number, e: SpotPrice) => (avg += e.energy / 24),
-                0,
-            );
+            const avgPrice = spotPricesRaw.reduce((avg: number, e: SpotPrice) => (avg += e.energy / 24), 0);
             const spotPrices = spotPricesRaw.map((e) => {
                 const { level, ...rest } = e;
                 return {
@@ -146,7 +130,7 @@ export default class TibberConnector {
 
             return {
                 spotPrices,
-                tomorrowsSpotPrices,
+                tomorrowsSpotPrices: tomorrowsSpotPrices || [],
             };
         } catch (error) {
             throw new Error(error.response.data);

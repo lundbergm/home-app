@@ -17,15 +17,17 @@ export default class Scheduler {
         this.setHeatingCartridge = new CronJob(
             EVERY_MINUTE,
             async () => {
-                const instruction = await this.getCurrentInstruction();
-                const level = await this.getCurrentPriceLevel();
-                console.log(
-                    `${new Date().toISOString()}: Setting heating cartrage to ${
-                        instruction ? 'ON' : 'OFF'
-                    }`,
-                );
-                this.spotPriceService.setHeatingCartridge(instruction);
-                this.spotPriceService.setPriceLed(level);
+                try {
+                    const instruction = await this.getCurrentInstruction();
+                    const level = await this.getCurrentPriceLevel();
+                    console.log(
+                        `${new Date().toISOString()}: Setting heating cartrage to ${instruction ? 'ON' : 'OFF'}`,
+                    );
+                    this.spotPriceService.setHeatingCartridge(instruction);
+                    this.spotPriceService.setPriceLed(level);
+                } catch (error) {
+                    console.error(error);
+                }
             },
             undefined,
             undefined,
@@ -46,9 +48,7 @@ export default class Scheduler {
     };
 
     public getCurrentInstruction = async (): Promise<boolean> => {
-        const schedule = await this.spotPriceService.getHeatingSchedule(
-            Interval.Today,
-        );
+        const schedule = await this.spotPriceService.getHeatingSchedule(Interval.Today);
         const now = new Date();
 
         // Catch skew
@@ -57,22 +57,17 @@ export default class Scheduler {
             now.setSeconds(0);
         }
 
-        const timeSlot = schedule.find(
-            (spot) => new Date(spot.startsAt).getHours() === now.getHours(),
-        );
+        const timeSlot = schedule.find((spot) => new Date(spot.startsAt).getHours() === now.getHours());
 
         if (!timeSlot) {
             throw new Error('No valid timeslot found.');
         }
-        console.log(timeSlot);
         const { heatingCartridge } = timeSlot;
         return heatingCartridge;
     };
 
     public getCurrentPriceLevel = async (): Promise<PriceLevel> => {
-        const schedule = await this.spotPriceService.getHeatingSchedule(
-            Interval.Today,
-        );
+        const schedule = await this.spotPriceService.getHeatingSchedule(Interval.Today);
         const now = new Date();
 
         // Catch skew
@@ -81,9 +76,7 @@ export default class Scheduler {
             now.setSeconds(0);
         }
 
-        const timeSlot = schedule.find(
-            (spot) => new Date(spot.startsAt).getHours() === now.getHours(),
-        );
+        const timeSlot = schedule.find((spot) => new Date(spot.startsAt).getHours() === now.getHours());
 
         if (!timeSlot) {
             throw new Error('No valid timeslot found.');

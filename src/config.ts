@@ -20,10 +20,7 @@ const config = {
 function e(key: string, type: 'string'): string;
 function e(key: string, type: 'integer'): number;
 function e(key: string, type: 'boolean'): boolean;
-function e(
-    key: string,
-    type: 'string' | 'integer' | 'boolean',
-): string | number | boolean {
+function e(key: string, type: 'string' | 'integer' | 'boolean'): string | number | boolean {
     const value = env[key];
 
     if (value === undefined) {
@@ -41,14 +38,8 @@ function e(
         throw new Error(`Unknown configuration type '${key}'`);
     }
 
-    if (
-        toReturn === null ||
-        toReturn === undefined ||
-        (typeof toReturn === 'number' && isNaN(toReturn))
-    ) {
-        throw new Error(
-            `Could not parse required configuration value '${value}'`,
-        );
+    if (toReturn === null || toReturn === undefined || (typeof toReturn === 'number' && isNaN(toReturn))) {
+        throw new Error(`Could not parse required configuration value '${value}'`);
     }
 
     return toReturn;

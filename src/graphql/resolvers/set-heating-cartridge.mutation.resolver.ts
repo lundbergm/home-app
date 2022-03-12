@@ -1,7 +1,4 @@
-import {
-    MutationSetHeatingCartridgeArgs,
-    State,
-} from '../../generated/graphql';
+import { MutationSetHeatingCartridgeArgs, State } from '../../generated/graphql';
 import SpotPriceService from '../../services/spot-price.service';
 
 export default class SetHeatingCartridgeMutationResolver {

@@ -8,18 +8,10 @@ interface ResolverDependencies {
     spotPriceService: SpotPriceService;
 }
 
-export default async function graphqlResolvers(
-    dependencies: ResolverDependencies,
-): Promise<Resolvers> {
-    const spotPriceResolver = new SpotPriceResolver(
-        dependencies.spotPriceService,
-    );
-    const heatingScheduleResolver = new HeatingScheduleResolver(
-        dependencies.spotPriceService,
-    );
-    const setHeatingCartridgeMutationResolver = new SetHeatingCartridgeMutationResolver(
-        dependencies.spotPriceService,
-    );
+export default async function graphqlResolvers(dependencies: ResolverDependencies): Promise<Resolvers> {
+    const spotPriceResolver = new SpotPriceResolver(dependencies.spotPriceService);
+    const heatingScheduleResolver = new HeatingScheduleResolver(dependencies.spotPriceService);
+    const setHeatingCartridgeMutationResolver = new SetHeatingCartridgeMutationResolver(dependencies.spotPriceService);
     return {
         Query: {
             spotPrice: spotPriceResolver.resolve,

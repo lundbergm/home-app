@@ -29,10 +29,7 @@ export default async function createApp(
     const gpioConnector = new GpioConnector();
 
     /* SERVICES */
-    const spotPriceService = new SpotPriceService(
-        tibberConnector,
-        gpioConnector,
-    );
+    const spotPriceService = new SpotPriceService(tibberConnector, gpioConnector);
 
     /* SCHEDULER */
     const scheduler = new Scheduler(spotPriceService);

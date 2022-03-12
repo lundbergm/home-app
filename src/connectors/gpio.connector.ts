@@ -60,7 +60,6 @@ export default class GpioConnector {
     }
 
     public setPriceLed(color: LedColor): void {
-        console.log(color);
         switch (color) {
             case LedColor.Green: {
                 rpio.write(LED_GREEN, rpio.HIGH);
