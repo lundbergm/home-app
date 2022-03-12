@@ -1,0 +1,19 @@
+.Schema {
+    padding-left: 20px;
+    color: white;
+    font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace;
+}
+.Schema h3 {
+    color: lightgray;
+    font-size: large;
+}
+.Schema__item {
+    display: block;
+    color: grey;
+    font-weight: 100;
+}
+.Schema__item_now {
+    display: block;
+    font-weight: bolder;
+    color: white;
+}
