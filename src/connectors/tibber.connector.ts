@@ -103,7 +103,7 @@ export default class TibberConnector {
             }
             const spotPricesRaw = response.data.data.viewer.home.currentSubscription.priceInfo.today;
             const tomorrowsSpotPricesRaw = response.data.data.viewer.home.currentSubscription.priceInfo.tomorrow;
-
+            // tomorrowsSpotPricesRaw IS [] if no data yet!
             const avgPrice = spotPricesRaw.reduce((avg: number, e: SpotPrice) => (avg += e.energy / 24), 0);
             const spotPrices = spotPricesRaw.map((e) => {
                 const { level, ...rest } = e;

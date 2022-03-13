@@ -2,6 +2,7 @@ import { ApolloServer } from 'apollo-server-express';
 import cors from 'cors';
 import express from 'express';
 import morgan from 'morgan';
+import path from 'path';
 import { AppConfig } from './config';
 import GpioConnector from './connectors/gpio.connector';
 import TibberConnector from './connectors/tibber.connector';
@@ -49,6 +50,12 @@ export default async function createApp(
     server.applyMiddleware({
         app,
         path: '/api/graphql',
+    });
+
+    app.use('/static', express.static(path.resolve(__dirname, 'frontend', 'static')));
+
+    app.get('/*', (_req, res) => {
+        res.sendFile(path.resolve(__dirname, 'frontend', 'index.html'));
     });
 
     const shutdownFunctions = [gpioConnector.onShutdown, scheduler.stop];

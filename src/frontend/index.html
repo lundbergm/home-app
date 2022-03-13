@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Single Page App</title>
+        <link rel="stylesheet" href="/static/css/index.css" />
+        <link rel="stylesheet" href="/static/css/schedule.css" />
+    </head>
+    <body>
+        <header class="App-header">
+            <img id="menu-button-open" class="menu-icon" src="/static/menu.svg" />
+            <img id="menu-button-close" class="menu-icon" src="/static/close.svg" style="display: none" />
+            <p class="App-header-title">
+                <code>Home</code>
+            </p>
+        </header>
+        <div id="menu-container" class="menu-container">
+            <div class="menu-header-cover"></div>
+            <nav class="nav">
+                <li id="dashboard-menu-item" class="menu-item selected">
+                    <a href="/" class="nav__link" data-link>
+                        <span>Dashboard</span>
+                    </a>
+                </li>
+                <li id="schedule-menu-item" class="menu-item">
+                    <a href="/schedule" class="nav__link" data-link>
+                        <span>Schedule</span>
+                    </a>
+                </li>
+                <li id="settings-menu-item" class="menu-item">
+                    <a href="/settings" class="nav__link" data-link>
+                        <span>Settings</span>
+                    </a>
+                </li>
+            </nav>
+        </div>
+        <div id="app"></div>
+        <script type="module" src="/static/js/index.js"></script>
+    </body>
+</html>
