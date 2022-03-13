@@ -8,6 +8,7 @@
     "typings": "build/main/index.d.ts",
     "scripts": {
         "build": "tsc",
+        "postbuild": "copyfiles -u 1 'src/**/*' build/main",
         "fix": "run-s fix:*",
         "fix:prettier": "prettier \"src/**/*.ts\" --write --loglevel warn",
         "fix:tslint": "tslint --fix --project .",
@@ -58,6 +59,7 @@
         "@types/graphql": "^14.5.0",
         "@types/morgan": "^1.9.3",
         "@types/node": "^12.7.3",
+        "copyfiles": "^2.4.1",
         "husky": "^3.0.5",
         "npm-run-all": "^4.1.5",
         "prettier": "2.1.2",
