@@ -8,8 +8,7 @@ export default class extends AbstractView {
 
     async getHtml() {
         return `
-            <h1>Settings</h1>
-            <p>Manage your privacy and configuration.</p>
+            Later...
         `;
     }
 }
