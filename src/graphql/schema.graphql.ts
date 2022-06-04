@@ -11,10 +11,21 @@ const typeDefs = gql`
         Hourly schedule for how to best use electical power based on price.
         """
         heatingSchedule(interval: Interval!): [TimeSlot!]!
+
+        """
+        Get transformer level
+        """
+        transformerLevel(): Int!
+        
     }
 
     type Mutation {
         setHeatingCartridge(state: State!): State!
+
+        """
+        Set transformer level
+        """
+        setTransformerLevel(level: Int!): Int!
     }
 
     enum State {

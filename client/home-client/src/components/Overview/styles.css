@@ -1,0 +1,23 @@
+.Overview {
+    padding: 20px;
+    color: lightgray;
+}
+
+.Overview h3 {
+    font-size: large;
+}
+
+.Overview-card-container {
+    display: flex;
+}
+.Card {
+    width: 50%;
+    height: 100px;
+    margin: 10px;
+    padding: 10px;
+    border-radius: 10px;
+}
+.Card-data {
+    text-align: center;
+    vertical-align: middle;
+}

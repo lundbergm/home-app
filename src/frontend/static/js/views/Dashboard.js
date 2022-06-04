@@ -35,13 +35,21 @@ export default class extends AbstractView {
         })
     };
     
-    const resp = await ( await fetch(`http://192.168.50.36:4000/api/graphql`, options)).json();
+    const resp = await ( await fetch(`http://localhost:4000/api/graphql`, options)).json();
+    // const resp = await ( await fetch(`http://192.168.50.36:4000/api/graphql`, options)).json();
     return resp.data.heatingSchedule
     }
 
     async renderCharts() {
         const schedule = await this.getSchedule('today');
         const prices = schedule.map((e) => ((e.energy * 100).toFixed(1)));
+        const now = new Date();
+        now.setMinutes(0);
+        now.setSeconds(0);
+        const current = schedule.find(e => new Date(e.startsAt).toLocaleTimeString() === now.toLocaleTimeString() );
+        const max = schedule.reduce((prev, current) => {
+            return (prev.energy > current.energy) ? prev : current
+        })
         var lineOptions = {
             stroke: {
                 curve: 'smooth',
@@ -110,8 +118,48 @@ export default class extends AbstractView {
                 },
             }
         }
-        var chart = new ApexCharts(document.querySelector('#chart'), lineOptions)
-        chart.render()
+        
+
+        var gaugeOptions = {
+            series: [(current.energy) / (max.energy) * 100],
+            chart: {
+                width: '100%',
+                type: 'radialBar',
+                sparkline: {
+                    enabled: true
+                },
+                parentHeightOffset: 0,
+            },
+            plotOptions: {
+                radialBar: {
+                    hollow: {
+                        size: '70%',
+                    },
+                    dataLabels: {
+                        show: true,
+                        name: {
+                            show: true,
+                            fontSize: '16tpx',
+                            fontFamily: 'monospace',
+                            fontWeight: 600,
+                            color: 'white',
+                            offsetY: 5
+                        },
+                        value: {
+                            show: false,
+                        },
+                    }
+                },
+            },
+            labels: [(current.energy*100).toFixed(0) + ' öre'],
+        };
+  
+        var priceGauge = new ApexCharts(document.querySelector("#gauge-1"), gaugeOptions);
+        var gauge = new ApexCharts(document.querySelector("#gauge-2"), gaugeOptions);
+        priceGauge.render();
+        gauge.render();
+        var lineChart = new ApexCharts(document.querySelector('#chart'), lineOptions)
+        lineChart.render()
     }
 
     async render() {
@@ -121,8 +169,11 @@ export default class extends AbstractView {
 
     async getHtml() {
         return `
-        <div id="chart" class="Chart">
+        <div class="row">
+            <div id="gauge-1" class="gauge"></div>
+            <div id="gauge-2" class="gauge"></div>
         </div>
+        <div id="chart" class="Chart"></div>
         `;
     }
 }
