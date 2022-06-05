@@ -111,13 +111,13 @@ export default class SpotPriceService {
 
     private async fetchSpotPrices(): Promise<void> {
         const { spotPrices, tomorrowsSpotPrices } = await this.tibberConnector.getPriceInfo();
-        console.log(
-            'Fetching....',
-            spotPrices.length,
-            tomorrowsSpotPrices?.length || 'nothing here',
-            tomorrowsSpotPrices,
-            !!tomorrowsSpotPrices,
-        );
+        // console.log(
+        //     'Fetching....',
+        //     spotPrices.length,
+        //     tomorrowsSpotPrices?.length || 'nothing here',
+        //     tomorrowsSpotPrices,
+        //     !!tomorrowsSpotPrices,
+        // );
 
         this.spotPriceCache.set(CacheKey.SpotPrices, spotPrices);
         if (!tomorrowsSpotPrices || tomorrowsSpotPrices.length === 0) {

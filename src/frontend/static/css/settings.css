@@ -1,0 +1,37 @@
+
+/* CSS */
+.transformer-container {
+    padding: 20px;
+    line-height: 1.75rem;
+    text-align: center;
+    font-weight: 700;
+    font-family: monospace;
+
+}
+.transformer-value {
+    width: 40%;
+    color: #FFFFFF;
+    font-size: 1.5rem;
+    margin: 15px;
+}
+
+.transformer-button {
+  background-color: #295068;
+  border: 0 solid #E5E7EB;
+  box-sizing: border-box;
+  color: #FFFFFF;
+
+  font-size: 1rem;
+  justify-content: center;
+  padding: .75rem 1.65rem;
+
+  text-decoration: none #000000 solid;
+  text-decoration-thickness: auto;
+  width: 30%;
+  max-width: 200px;
+  position: relative;
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
+}

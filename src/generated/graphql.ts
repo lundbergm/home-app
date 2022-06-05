@@ -25,11 +25,18 @@ export enum Interval {
 export type Mutation = {
   __typename?: 'Mutation';
   setHeatingCartridge: State;
+  /** Set transformer level */
+  setTransformerLevel: Scalars['Int'];
 };
 
 
 export type MutationSetHeatingCartridgeArgs = {
   state: State;
+};
+
+
+export type MutationSetTransformerLevelArgs = {
+  level: Scalars['Int'];
 };
 
 export enum PriceLevel {
@@ -51,6 +58,8 @@ export type Query = {
   spotPrice: Array<SpotPrice>;
   /** Hourly schedule for how to best use electical power based on price. */
   heatingSchedule: Array<TimeSlot>;
+  /** Get transformer level */
+  transformerLevel: Scalars['Int'];
 };
 
 
@@ -170,6 +179,7 @@ export type DirectiveResolverFn<TResult = {}, TParent = {}, TContext = {}, TArgs
 export type ResolversTypes = {
   Interval: Interval;
   Mutation: ResolverTypeWrapper<{}>;
+  Int: ResolverTypeWrapper<Scalars['Int']>;
   PriceLevel: PriceLevel;
   Query: ResolverTypeWrapper<{}>;
   SpotPrice: ResolverTypeWrapper<SpotPrice>;
@@ -184,6 +194,7 @@ export type ResolversTypes = {
 /** Mapping between all available schema types and the resolvers parents */
 export type ResolversParentTypes = {
   Mutation: {};
+  Int: Scalars['Int'];
   Query: {};
   SpotPrice: SpotPrice;
   Float: Scalars['Float'];
@@ -195,11 +206,13 @@ export type ResolversParentTypes = {
 
 export type MutationResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']> = {
   setHeatingCartridge?: Resolver<ResolversTypes['State'], ParentType, ContextType, RequireFields<MutationSetHeatingCartridgeArgs, 'state'>>;
+  setTransformerLevel?: Resolver<ResolversTypes['Int'], ParentType, ContextType, RequireFields<MutationSetTransformerLevelArgs, 'level'>>;
 };
 
 export type QueryResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = {
   spotPrice?: Resolver<Array<ResolversTypes['SpotPrice']>, ParentType, ContextType, RequireFields<QuerySpotPriceArgs, 'interval'>>;
   heatingSchedule?: Resolver<Array<ResolversTypes['TimeSlot']>, ParentType, ContextType, RequireFields<QueryHeatingScheduleArgs, 'interval'>>;
+  transformerLevel?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
 };
 
 export type SpotPriceResolvers<ContextType = Context, ParentType extends ResolversParentTypes['SpotPrice'] = ResolversParentTypes['SpotPrice']> = {

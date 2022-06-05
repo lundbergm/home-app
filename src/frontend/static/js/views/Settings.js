@@ -1,3 +1,4 @@
+import { getTransformerLevel, setTransformerLevel } from "../api.js";
 import AbstractView from "./AbstractView.js";
 
 export default class extends AbstractView {
@@ -5,12 +6,14 @@ export default class extends AbstractView {
         super(params);
         this.setTitle("Settings");
         this.js();
-        this.value = 74;
+        this.value = 0;
     }
 
     async js() {
+        this.value = await getTransformerLevel();
+        this.render()
+
         document.body.addEventListener("click", e => {
-            console.log(e);
             if (e.target.matches('#minus-button')) {
                 handleClick(-1)
             } else if (e.target.matches('#plus-button')) {
@@ -18,22 +21,21 @@ export default class extends AbstractView {
             }
         });
 
-        const handleClick = (value) => {
+        const handleClick = async (value) => {
+            const requestValue = this.value + value;
 
-            const elem = document.getElementById('value');
-            elem.innerHTML = parseInt(elem.innerHTML) + value;
-            
-            
-            // this.render()
-        }
+            this.value = await setTransformerLevel(requestValue)
+            console.log(this.value);
+            this.render()
+        }   
     }
 
     async getHtml() {
         return `
-        <div>
-            <button id="minus-button" >-</button>
-            <span id="value" >${this.value}</span>
-            <button id="plus-button" >+</button>
+        <div class="transformer-container">
+            <button id="minus-button" class="transformer-button" >-</button>
+            <span class="transformer-value" id="value" >${this.value}%</span>
+            <button id="plus-button" class="transformer-button" >+</button>
         </div>
         `;
     }

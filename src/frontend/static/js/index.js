@@ -29,7 +29,6 @@ const routes = [
 ];
 
 const router = async () => {
-    console.log(location.pathname);
     let page = routes.find(e => e.path === location.pathname);
     
     if (!page) {

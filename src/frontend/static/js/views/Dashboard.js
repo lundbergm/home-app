@@ -35,8 +35,8 @@ export default class extends AbstractView {
         })
     };
     
-    const resp = await ( await fetch(`http://localhost:4000/api/graphql`, options)).json();
-    // const resp = await ( await fetch(`http://192.168.50.36:4000/api/graphql`, options)).json();
+    // const resp = await ( await fetch(`http://localhost:4000/api/graphql`, options)).json();
+    const resp = await ( await fetch(`http://192.168.50.36:4000/api/graphql`, options)).json();
     return resp.data.heatingSchedule
     }
 

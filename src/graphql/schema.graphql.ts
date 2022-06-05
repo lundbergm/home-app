@@ -15,8 +15,7 @@ const typeDefs = gql`
         """
         Get transformer level
         """
-        transformerLevel(): Int!
-        
+        transformerLevel: Int!
     }
 
     type Mutation {
