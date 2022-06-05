@@ -10,6 +10,7 @@ import graphqlResolvers from './graphql';
 import typeDefs from './graphql/schema.graphql';
 import Scheduler from './scheduler';
 import SpotPriceService from './services/spot-price.service';
+import TransformerService from './services/transformer.service';
 
 export type Context = Record<string, unknown>;
 
@@ -31,13 +32,14 @@ export default async function createApp(
 
     /* SERVICES */
     const spotPriceService = new SpotPriceService(tibberConnector, gpioConnector);
+    const transformerService = new TransformerService(gpioConnector);
 
     /* SCHEDULER */
     const scheduler = new Scheduler(spotPriceService);
     scheduler.setup();
     scheduler.start();
 
-    const resolvers = await graphqlResolvers({ spotPriceService });
+    const resolvers = await graphqlResolvers({ spotPriceService, transformerService });
 
     const server = new ApolloServer({
         typeDefs,
@@ -58,6 +60,6 @@ export default async function createApp(
         res.sendFile(path.resolve(__dirname, 'frontend', 'index.html'));
     });
 
-    const shutdownFunctions = [gpioConnector.onShutdown, scheduler.stop];
+    const shutdownFunctions = [gpioConnector.onShutdown, scheduler.stop, transformerService.stop];
     return { app, shutdownFunctions };
 }

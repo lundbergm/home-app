@@ -51,6 +51,11 @@ export default class GpioConnector {
         rpio.exit();
     };
 
+    public setTransformerRelay(state: boolean) {
+        const gpioState = state ? rpio.HIGH : rpio.LOW;
+        rpio.write(RELAY_4, gpioState);
+    }
+
     public setHeatingCartridge(state: boolean) {
         // LOW output gives cartridge on.
         const gpioState = state ? rpio.LOW : rpio.HIGH;
