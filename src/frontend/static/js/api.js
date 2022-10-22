@@ -1,4 +1,4 @@
-export function getSchedule(interval) {
+export async function getSchedule(interval) {
     const query = `
         query Schema($interval: Interval!) {
             heatingSchedule(interval: $interval) {

@@ -1,6 +1,6 @@
 import NodeCache from 'node-cache';
 import GpioConnector, { LedColor } from '../connectors/gpio.connector';
-import TibberConnector from '../connectors/tibber.connector';
+import { SpotPriceConnector } from '../connectors/spot-price.connector';
 import { Interval, PriceLevel, Schedule, SpotPriceCollection } from '../models/models';
 
 enum CacheKey {
@@ -14,7 +14,10 @@ export default class SpotPriceService {
     private spotPriceCacheDate: Date;
     private scheduleCacheDate: Date;
 
-    constructor(private readonly tibberConnector: TibberConnector, private readonly gpioConnector: GpioConnector) {
+    constructor(
+        private readonly spotPriceConnector: SpotPriceConnector,
+        private readonly gpioConnector: GpioConnector,
+    ) {
         this.spotPriceCacheDate = new Date();
         this.scheduleCacheDate = new Date();
         this.spotPriceCache = new NodeCache({ stdTTL: 0, useClones: false });
@@ -47,12 +50,23 @@ export default class SpotPriceService {
                     break;
                 }
             }
-            if (!spotPrices) {
+            if (spotPrices === undefined) {
                 return [];
             }
             this.scheduleCache.set(interval, calculateSchedule(spotPrices));
         }
         return this.scheduleCache.get(interval) as Schedule;
+    }
+
+    public async overrideHeatingSchedule(interval: Interval, _timeslot: string, _state: boolean): Promise<Schedule> {
+        const schedule = await this.getHeatingSchedule(interval);
+        if (schedule.length === 0) {
+            throw new Error('Schedule not found');
+        }
+        schedule.map((timeslot) => console.log(new Date(timeslot.startsAt).getHours()));
+        // schedule.findIndex(timeslot => new Date(timeslot.startsAt).getHours() = )
+        // TODO: Implement override
+        return schedule;
     }
 
     public setHeatingCartridge(state: boolean): void {
@@ -110,14 +124,8 @@ export default class SpotPriceService {
     }
 
     private async fetchSpotPrices(): Promise<void> {
-        const { spotPrices, tomorrowsSpotPrices } = await this.tibberConnector.getPriceInfo();
-        console.log(
-            'Fetching....',
-            spotPrices.length,
-            tomorrowsSpotPrices?.length || 'nothing here',
-            tomorrowsSpotPrices,
-            !!tomorrowsSpotPrices,
-        );
+        const { spotPrices, tomorrowsSpotPrices } = await this.spotPriceConnector.getSpotPrices();
+        console.log(spotPrices);
 
         this.spotPriceCache.set(CacheKey.SpotPrices, spotPrices);
         if (!tomorrowsSpotPrices || tomorrowsSpotPrices.length === 0) {

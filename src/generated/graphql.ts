@@ -25,10 +25,19 @@ export enum Interval {
 export type Mutation = {
   __typename?: 'Mutation';
   setHeatingCartridge: State;
+  /** Override heating schedule timeslot with new value */
+  setHeatingTimeSlot: Array<TimeSlot>;
 };
 
 
 export type MutationSetHeatingCartridgeArgs = {
+  state: State;
+};
+
+
+export type MutationSetHeatingTimeSlotArgs = {
+  interval: Interval;
+  startTime: Scalars['String'];
   state: State;
 };
 
@@ -170,11 +179,11 @@ export type DirectiveResolverFn<TResult = {}, TParent = {}, TContext = {}, TArgs
 export type ResolversTypes = {
   Interval: Interval;
   Mutation: ResolverTypeWrapper<{}>;
+  String: ResolverTypeWrapper<Scalars['String']>;
   PriceLevel: PriceLevel;
   Query: ResolverTypeWrapper<{}>;
   SpotPrice: ResolverTypeWrapper<SpotPrice>;
   Float: ResolverTypeWrapper<Scalars['Float']>;
-  String: ResolverTypeWrapper<Scalars['String']>;
   State: State;
   Test: ResolverTypeWrapper<Test>;
   TimeSlot: ResolverTypeWrapper<TimeSlot>;
@@ -184,10 +193,10 @@ export type ResolversTypes = {
 /** Mapping between all available schema types and the resolvers parents */
 export type ResolversParentTypes = {
   Mutation: {};
+  String: Scalars['String'];
   Query: {};
   SpotPrice: SpotPrice;
   Float: Scalars['Float'];
-  String: Scalars['String'];
   Test: Test;
   TimeSlot: TimeSlot;
   Boolean: Scalars['Boolean'];
@@ -195,6 +204,7 @@ export type ResolversParentTypes = {
 
 export type MutationResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']> = {
   setHeatingCartridge?: Resolver<ResolversTypes['State'], ParentType, ContextType, RequireFields<MutationSetHeatingCartridgeArgs, 'state'>>;
+  setHeatingTimeSlot?: Resolver<Array<ResolversTypes['TimeSlot']>, ParentType, ContextType, RequireFields<MutationSetHeatingTimeSlotArgs, 'interval' | 'startTime' | 'state'>>;
 };
 
 export type QueryResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = {

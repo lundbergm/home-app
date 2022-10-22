@@ -15,6 +15,11 @@ const typeDefs = gql`
 
     type Mutation {
         setHeatingCartridge(state: State!): State!
+
+        """
+        Override heating schedule timeslot with new value
+        """
+        setHeatingTimeSlot(interval: Interval!, startTime: String!, state: State!): [TimeSlot!]!
     }
 
     enum State {

@@ -5,7 +5,8 @@ import morgan from 'morgan';
 import path from 'path';
 import { AppConfig } from './config';
 import GpioConnector from './connectors/gpio.connector';
-import TibberConnector from './connectors/tibber.connector';
+import MockedSpotPriceConnector from './connectors/mocked-spot-price.connector';
+import TibberSpotPriceConnector from './connectors/tibber-spot-price.connector';
 import graphqlResolvers from './graphql';
 import typeDefs from './graphql/schema.graphql';
 import Scheduler from './scheduler';
@@ -21,16 +22,14 @@ export default async function createApp(
     app.use(cors());
 
     /* CONNECTORS */
-    const tibberConnector = new TibberConnector(
-        config.tibber.baseUrl,
-        config.tibber.homeId,
-        config.tibber.accessToken,
-        config.mockMode,
-    );
+
+    const spotPriceConnector = config.mockMode
+        ? new MockedSpotPriceConnector()
+        : new TibberSpotPriceConnector(config.tibber.baseUrl, config.tibber.homeId, config.tibber.accessToken);
     const gpioConnector = new GpioConnector();
 
     /* SERVICES */
-    const spotPriceService = new SpotPriceService(tibberConnector, gpioConnector);
+    const spotPriceService = new SpotPriceService(spotPriceConnector, gpioConnector);
 
     /* SCHEDULER */
     const scheduler = new Scheduler(spotPriceService);
