@@ -3,7 +3,7 @@ import createApp from './app';
 import config from './config';
 
 async function main() {
-    if (config.mockMode) {
+    if (config.tibber.mockMode || config.modbus.mockMode) {
         console.warn('---- MOCK MODE ----');
     }
 

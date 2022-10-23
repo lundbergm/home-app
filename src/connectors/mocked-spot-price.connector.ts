@@ -1,4 +1,4 @@
-import { mockSpotPrices, mockTomorrowsSpotPrices } from '../mock/mockData';
+import { mockSpotPrices, mockTomorrowsSpotPrices } from '../mock/mock-data';
 import { GetPriceInfoResponse, SpotPriceCollection, SpotPriceConnector } from './spot-price.connector';
 
 export default class MockedSpotPriceConnector implements SpotPriceConnector {

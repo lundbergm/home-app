@@ -3,17 +3,21 @@ import { env } from 'process';
 
 dotenv.config();
 
-const mockMode = e('MOCK_MODE', 'boolean');
+const tibberMockMode = e('TIBBER_MOCK_MODE', 'boolean');
 const tibberHomeId = e('TIBBER_HOME_ID', 'string');
 const tibberAccessToken = e('TIBBER_ACCESS_TOKEN', 'string');
 const tibberApiUrl = e('TIBBER_API_URL', 'string');
+const modbusMockMode = e('MODBUS_MOCK_MODE', 'boolean');
 
 const config = {
-    mockMode,
     tibber: {
-        homeId: tibberHomeId,
         accessToken: tibberAccessToken,
         baseUrl: tibberApiUrl,
+        homeId: tibberHomeId,
+        mockMode: tibberMockMode,
+    },
+    modbus: {
+        mockMode: modbusMockMode,
     },
 };
 

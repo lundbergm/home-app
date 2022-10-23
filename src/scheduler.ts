@@ -1,16 +1,16 @@
 import { CronJob } from 'cron';
 import { Interval, PriceLevel } from './models/models';
 import SpotPriceService from './services/spot-price.service';
+import { ThermostatService } from './services/thermostat.service';
 
 const EVERY_MINUTE = '* * * * *'; // TODO: FIX
 
 export default class Scheduler {
-    private readonly spotPriceService: SpotPriceService;
-
     private setHeatingCartridge: CronJob;
-    constructor(spotPriceService: SpotPriceService) {
-        this.spotPriceService = spotPriceService;
-    }
+    constructor(
+        private readonly spotPriceService: SpotPriceService,
+        private readonly thermostatService: ThermostatService,
+    ) {}
 
     public setup(): void {
         console.log('Running cron setup...');
@@ -21,10 +21,13 @@ export default class Scheduler {
                     const instruction = await this.getCurrentInstruction();
                     const level = await this.getCurrentPriceLevel();
                     console.log(
-                        `${new Date().toISOString()}: Setting heating cartrage to ${instruction ? 'ON' : 'OFF'}`,
+                        `${new Date().toISOString()}: Setting heating cartrage and thermostat heating to ${
+                            instruction ? 'ON' : 'OFF'
+                        }.`,
                     );
                     this.spotPriceService.setHeatingCartridge(instruction);
                     this.spotPriceService.setPriceLed(level);
+                    this.thermostatService.setHeatingState(instruction);
                 } catch (error) {
                     console.error(error);
                 }
@@ -47,7 +50,7 @@ export default class Scheduler {
         this.setHeatingCartridge.stop();
     };
 
-    public getCurrentInstruction = async (): Promise<boolean> => {
+    private getCurrentInstruction = async (): Promise<boolean> => {
         const schedule = await this.spotPriceService.getHeatingSchedule(Interval.Today);
         const now = new Date();
 
@@ -66,7 +69,7 @@ export default class Scheduler {
         return heatingCartridge;
     };
 
-    public getCurrentPriceLevel = async (): Promise<PriceLevel> => {
+    private getCurrentPriceLevel = async (): Promise<PriceLevel> => {
         const schedule = await this.spotPriceService.getHeatingSchedule(Interval.Today);
         const now = new Date();
 

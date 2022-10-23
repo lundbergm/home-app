@@ -54,7 +54,6 @@ export default class GpioConnector {
     public setHeatingCartridge(state: boolean) {
         // LOW output gives cartridge on.
         const gpioState = state ? rpio.LOW : rpio.HIGH;
-        console.log(`Setting heating relays to: ${state}`);
         rpio.write(RELAY_1, gpioState);
         rpio.write(RELAY_2, gpioState);
     }

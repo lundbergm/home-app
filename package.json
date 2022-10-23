@@ -41,6 +41,7 @@
         "express": "^4.17.1",
         "graphql": "^15.6.1",
         "graphql-tools": "^4.0.8",
+        "modbus-serial": "^8.0.5",
         "morgan": "^1.10.0",
         "node-cache": "^5.1.2",
         "rpio": "^2.4.2",

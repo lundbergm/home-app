@@ -125,7 +125,6 @@ export default class SpotPriceService {
 
     private async fetchSpotPrices(): Promise<void> {
         const { spotPrices, tomorrowsSpotPrices } = await this.spotPriceConnector.getSpotPrices();
-        console.log(spotPrices);
 
         this.spotPriceCache.set(CacheKey.SpotPrices, spotPrices);
         if (!tomorrowsSpotPrices || tomorrowsSpotPrices.length === 0) {
