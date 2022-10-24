@@ -11,6 +11,11 @@ const typeDefs = gql`
         Hourly schedule for how to best use electical power based on price.
         """
         heatingSchedule(interval: Interval!): [TimeSlot!]!
+
+        """
+        Current thermostat info.
+        """
+        thermostatInfo: [ThermostatInfo!]!
     }
 
     type Mutation {
@@ -20,6 +25,15 @@ const typeDefs = gql`
         Override heating schedule timeslot with new value
         """
         setHeatingTimeSlot(interval: Interval!, startTime: String!, state: State!): [TimeSlot!]!
+    }
+
+    type ThermostatInfo {
+        name: String!
+        deviceAddress: Int!
+        roomTemperature: Float!
+        setpoint: Float!
+        heatOutputPercentage: Int!
+        allowHeating: Boolean!
     }
 
     enum State {

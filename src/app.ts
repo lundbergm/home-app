@@ -34,13 +34,18 @@ export default async function createApp(
         : new TibberSpotPriceConnector(config.tibber.baseUrl, config.tibber.homeId, config.tibber.accessToken);
     const gpioConnector = new GpioConnector();
     const modbusConnector = config.modbus.mockMode ? new MockedModbusConnector() : new SerialModbusConnector();
-    await modbusConnector.connect();
+    try {
+        await modbusConnector.connect();
+    } catch (error) {
+        console.error('Error connecting to modbus', error);
+    }
 
     const reginConnector = new ReginConnector(modbusConnector);
-    await reginConnector.registerDevices(THERMOSTATS);
-
-    const state = await reginConnector.getStatus(124);
-    console.log(state);
+    try {
+        await reginConnector.registerDevices(THERMOSTATS);
+    } catch (error) {
+        console.error('Error registering devices', error);
+    }
 
     /* SERVICES */
     const spotPriceService = new SpotPriceService(spotPriceConnector, gpioConnector);
@@ -51,7 +56,7 @@ export default async function createApp(
     scheduler.setup();
     scheduler.start();
 
-    const resolvers = await graphqlResolvers({ spotPriceService });
+    const resolvers = await graphqlResolvers({ spotPriceService, thermostatService });
 
     const server = new ApolloServer({
         typeDefs,

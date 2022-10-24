@@ -60,6 +60,8 @@ export type Query = {
   spotPrice: Array<SpotPrice>;
   /** Hourly schedule for how to best use electical power based on price. */
   heatingSchedule: Array<TimeSlot>;
+  /** Current thermostat info. */
+  thermostatInfo: Array<ThermostatInfo>;
 };
 
 
@@ -94,6 +96,16 @@ export enum State {
 export type Test = {
   __typename?: 'Test';
   title?: Maybe<Scalars['String']>;
+};
+
+export type ThermostatInfo = {
+  __typename?: 'ThermostatInfo';
+  name: Scalars['String'];
+  deviceAddress: Scalars['Int'];
+  roomTemperature: Scalars['Float'];
+  setpoint: Scalars['Float'];
+  heatOutputPercentage: Scalars['Int'];
+  allowHeating: Scalars['Boolean'];
 };
 
 export type TimeSlot = {
@@ -186,8 +198,10 @@ export type ResolversTypes = {
   Float: ResolverTypeWrapper<Scalars['Float']>;
   State: State;
   Test: ResolverTypeWrapper<Test>;
-  TimeSlot: ResolverTypeWrapper<TimeSlot>;
+  ThermostatInfo: ResolverTypeWrapper<ThermostatInfo>;
+  Int: ResolverTypeWrapper<Scalars['Int']>;
   Boolean: ResolverTypeWrapper<Scalars['Boolean']>;
+  TimeSlot: ResolverTypeWrapper<TimeSlot>;
 };
 
 /** Mapping between all available schema types and the resolvers parents */
@@ -198,8 +212,10 @@ export type ResolversParentTypes = {
   SpotPrice: SpotPrice;
   Float: Scalars['Float'];
   Test: Test;
-  TimeSlot: TimeSlot;
+  ThermostatInfo: ThermostatInfo;
+  Int: Scalars['Int'];
   Boolean: Scalars['Boolean'];
+  TimeSlot: TimeSlot;
 };
 
 export type MutationResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']> = {
@@ -210,6 +226,7 @@ export type MutationResolvers<ContextType = Context, ParentType extends Resolver
 export type QueryResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = {
   spotPrice?: Resolver<Array<ResolversTypes['SpotPrice']>, ParentType, ContextType, RequireFields<QuerySpotPriceArgs, 'interval'>>;
   heatingSchedule?: Resolver<Array<ResolversTypes['TimeSlot']>, ParentType, ContextType, RequireFields<QueryHeatingScheduleArgs, 'interval'>>;
+  thermostatInfo?: Resolver<Array<ResolversTypes['ThermostatInfo']>, ParentType, ContextType>;
 };
 
 export type SpotPriceResolvers<ContextType = Context, ParentType extends ResolversParentTypes['SpotPrice'] = ResolversParentTypes['SpotPrice']> = {
@@ -226,6 +243,16 @@ export type TestResolvers<ContextType = Context, ParentType extends ResolversPar
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
+export type ThermostatInfoResolvers<ContextType = Context, ParentType extends ResolversParentTypes['ThermostatInfo'] = ResolversParentTypes['ThermostatInfo']> = {
+  name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  deviceAddress?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  roomTemperature?: Resolver<ResolversTypes['Float'], ParentType, ContextType>;
+  setpoint?: Resolver<ResolversTypes['Float'], ParentType, ContextType>;
+  heatOutputPercentage?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  allowHeating?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
 export type TimeSlotResolvers<ContextType = Context, ParentType extends ResolversParentTypes['TimeSlot'] = ResolversParentTypes['TimeSlot']> = {
   startsAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   level?: Resolver<ResolversTypes['PriceLevel'], ParentType, ContextType>;
@@ -239,6 +266,7 @@ export type Resolvers<ContextType = Context> = {
   Query?: QueryResolvers<ContextType>;
   SpotPrice?: SpotPriceResolvers<ContextType>;
   Test?: TestResolvers<ContextType>;
+  ThermostatInfo?: ThermostatInfoResolvers<ContextType>;
   TimeSlot?: TimeSlotResolvers<ContextType>;
 };
 

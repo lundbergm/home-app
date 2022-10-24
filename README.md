@@ -34,5 +34,8 @@ $ npm run generate:types
 
 ## Run on target 
 ```bash
+$ git pull origin main
+$ npm i
+$ npm run build
 $ nohup node --noexpose_wasm build/main/index.js&
 ```

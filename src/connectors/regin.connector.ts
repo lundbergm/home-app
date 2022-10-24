@@ -75,9 +75,6 @@ export class ReginConnector {
     }
 
     public async setHeatingState(allowHeating: boolean, deviceAddresses?: number[]): Promise<void> {
-        //
-        console.log(await this.getStatus());
-        //
         if (deviceAddresses === undefined) {
             deviceAddresses = this.units.map((unit) => unit.deviceAddress);
         }
