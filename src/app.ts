@@ -16,7 +16,13 @@ import Scheduler from './scheduler';
 import SpotPriceService from './services/spot-price.service';
 import { ThermostatService } from './services/thermostat.service';
 
-const THERMOSTATS: Array<{ name: string; deviceAddress: number }> = [{ name: 'M', deviceAddress: 124 }];
+const THERMOSTATS: Array<{ name: string; deviceAddress: number; writeBaseConfig?: boolean; backlight?: boolean }> = [
+    { name: 'Vardagsrum', deviceAddress: 139, backlight: false },
+    { name: 'Kök', deviceAddress: 124 },
+    { name: 'M', deviceAddress: 169 },
+    { name: 'Sovrum', deviceAddress: 15, backlight: false },
+    { name: 'Hall', deviceAddress: 113 },
+];
 
 export type Context = Record<string, unknown>;
 
@@ -43,11 +49,14 @@ export default async function createApp(
     }
 
     const reginConnector = new ReginConnector(modbusConnector);
-    try {
-        await reginConnector.registerDevices(THERMOSTATS);
-    } catch (error) {
-        console.error('Error registering devices', error);
+    for await (const thermostat of THERMOSTATS) {
+        try {
+            await reginConnector.registerDevice(thermostat);
+        } catch (error) {
+            console.error(`Error registering device ${thermostat.name}, address: ${thermostat.deviceAddress}`, error);
+        }
     }
+    console.log('Registered devices:', reginConnector.getUnits());
 
     /* SERVICES */
     const spotPriceService = new SpotPriceService(spotPriceConnector, gpioConnector);

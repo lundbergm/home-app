@@ -1,8 +1,27 @@
 import { ModbusConnector } from './modbus.connector';
 
+const BASE_CONFIG = [
+    { address: 14, value: 3 }, // Remote state: Occupied
+    { address: 15, value: 3 },
+    { address: 16, value: 1 },
+    { address: 17, value: 3 },
+    { address: 42, value: 1 },
+    { address: 51, value: 0 },
+    { address: 52, value: 2 },
+    { address: 55, value: 3 },
+    { address: 56, value: 0 },
+    { address: 71, value: 200 },
+    { address: 72, value: 0 },
+    { address: 73, value: 160 },
+    { address: 74, value: 100 },
+    { address: 75, value: 100 },
+    { address: 68, value: 200 },
+    { address: 69, value: 0 },
+];
+
 const CONFIG_COOL_OUTPUT_SELECT = { address: 4, value: 0 }; // Set cool output to Off
 const CONFIG_FAN_MODE = { address: 5, value: 0 }; // Set fan mode to Off
-const CONFIG_LOW_BACKLIGHT = { address: 48, value: 0 }; // Set low backlight to minimum
+const CONFIG_LOW_BACKLIGHT = { address: 48, value: 10 }; // Set low backlight to minimum
 const CONFIG_FROST_PROTECTION = { address: 73, value: 140 }; // Set frost protection to 14 degrees
 const CONFIG_FORCED_PROTECTION = { address: 12, value: 0 }; // Set forced ventilation to Off
 
@@ -33,8 +52,21 @@ export class ReginConnector {
     private units: Thermostat[] = [];
     constructor(private modbusConnector: ModbusConnector) {}
 
-    public async registerDevice(device: Thermostat): Promise<void> {
+    public getUnits(): Thermostat[] {
+        return this.units;
+    }
+
+    public async registerDevice(
+        device: Thermostat & { writeBaseConfig?: boolean; backlight?: boolean },
+    ): Promise<void> {
         const { name, deviceAddress } = device;
+        if (device.writeBaseConfig === true) {
+            for await (const config of BASE_CONFIG) {
+                console.log(`Writing config: ${JSON.stringify(config)}`);
+                await this.modbusConnector.writeRegister(deviceAddress, config.address, config.value);
+            }
+        }
+
         await this.modbusConnector.writeRegister(
             deviceAddress,
             CONFIG_COOL_OUTPUT_SELECT.address,
@@ -44,7 +76,7 @@ export class ReginConnector {
         await this.modbusConnector.writeRegister(
             deviceAddress,
             CONFIG_LOW_BACKLIGHT.address,
-            CONFIG_LOW_BACKLIGHT.value,
+            device.backlight === false ? 0 : CONFIG_LOW_BACKLIGHT.value,
         );
         await this.modbusConnector.writeRegister(
             deviceAddress,
@@ -78,14 +110,15 @@ export class ReginConnector {
         if (deviceAddresses === undefined) {
             deviceAddresses = this.units.map((unit) => unit.deviceAddress);
         }
-        const promises = deviceAddresses.map((unitAddress) =>
-            this.modbusConnector.writeRegister(
-                unitAddress,
+
+        for await (const deviceAddress of deviceAddresses) {
+            await this.modbusConnector.writeRegister(
+                deviceAddress,
                 HEAT_OUTPUT_SELECT.address,
                 allowHeating ? HEAT_OUTPUT_AUTO : HEAT_OUTPUT_OFF,
-            ),
-        );
-        await Promise.all(promises);
+            );
+            await new Promise((resolve) => setTimeout(resolve, 100));
+        }
     }
 
     public async getStatus(): Promise<ReginState[]>;
