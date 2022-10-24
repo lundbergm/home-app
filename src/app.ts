@@ -33,7 +33,9 @@ export default async function createApp(
         ? new MockedSpotPriceConnector()
         : new TibberSpotPriceConnector(config.tibber.baseUrl, config.tibber.homeId, config.tibber.accessToken);
     const gpioConnector = new GpioConnector();
-    const modbusConnector = config.modbus.mockMode ? new MockedModbusConnector() : new SerialModbusConnector();
+    const modbusConnector = config.modbus.mockMode
+        ? new MockedModbusConnector()
+        : new SerialModbusConnector(config.modbus.path);
     try {
         await modbusConnector.connect();
     } catch (error) {

@@ -8,6 +8,7 @@ const tibberHomeId = e('TIBBER_HOME_ID', 'string');
 const tibberAccessToken = e('TIBBER_ACCESS_TOKEN', 'string');
 const tibberApiUrl = e('TIBBER_API_URL', 'string');
 const modbusMockMode = e('MODBUS_MOCK_MODE', 'boolean');
+const modbusPath = e('MODBUS_PATH', 'string');
 
 const config = {
     tibber: {
@@ -18,6 +19,7 @@ const config = {
     },
     modbus: {
         mockMode: modbusMockMode,
+        path: modbusPath,
     },
 };
 

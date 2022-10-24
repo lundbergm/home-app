@@ -12,9 +12,10 @@ const STOP_BITS = 1;
 // Compensated in all functions below.
 export class SerialModbusConnector {
     private readonly client: ModbusRTU;
-    private readonly path = '/dev/tty.usbserial-FTXVHNOA';
+    private readonly path: string;
 
-    constructor() {
+    constructor(path: string) {
+        this.path = path;
         this.client = new ModbusRTU();
     }
 
