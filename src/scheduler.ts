@@ -1,7 +1,6 @@
 import { CronJob } from 'cron';
-import { PriceLevel } from './models/models';
+import { HomeController } from './controllers/home.controller';
 import { IoService } from './services/io.service';
-import { ScheduleService } from './services/schedule.service';
 import { ThermostatService } from './services/thermostat.service';
 
 const EVERY_MINUTE = '* * * * *'; // TODO: FIX
@@ -12,8 +11,8 @@ export default class Scheduler {
     private createSchedule: CronJob;
 
     constructor(
+        private readonly homeController: HomeController,
         private readonly thermostatService: ThermostatService,
-        private readonly scheduleService: ScheduleService,
         private readonly ioService: IoService,
     ) {}
 
@@ -23,23 +22,10 @@ export default class Scheduler {
             EVERY_MINUTE,
             async () => {
                 try {
-                    let instruction: boolean = true; // Default to on for safety
-                    try {
-                        instruction = await this.getCurrentInstruction();
-                    } catch (error) {
-                        console.error('Error getting current instruction', error);
-                    }
-                    const level = await this.getCurrentPriceLevel();
-                    console.log(
-                        `${new Date().toISOString()}: Setting heating cartrage and thermostat heating to ${
-                            instruction ? 'ON' : 'OFF'
-                        }.`,
-                    );
-
-                    this.ioService.setHeatingCartridge(instruction);
-                    this.ioService.setPriceLed(level);
-                    this.thermostatService.setHeatingState(instruction);
+                    await this.homeController.setCurrentInstructions();
                 } catch (error) {
+                    this.ioService.setHeatingCartridge(true); // Default to on for safety
+                    await this.thermostatService.setHeatingState(true); // Default to on for safety
                     console.error(error);
                 }
             },
@@ -54,7 +40,7 @@ export default class Scheduler {
             async () => {
                 try {
                     console.log('Running schedule generation...');
-                    await this.scheduleService.generateSchedule();
+                    await this.homeController.generateSchedule();
                 } catch (error) {
                     console.error(error);
                 }
@@ -76,30 +62,6 @@ export default class Scheduler {
     public stop = (): void => {
         console.log('Stopping cron jobs...');
         this.setHeatingCartridge.stop();
-    };
-
-    private getCurrentInstruction = async (): Promise<boolean> => {
-        const now = new Date();
-        // Catch skew
-        if (now.getSeconds() >= 58) {
-            now.setMinutes(now.getMinutes() + 1);
-            now.setSeconds(0);
-        }
-
-        const id = this.scheduleService.getId(now);
-        return this.scheduleService.getHeatingCartridgeState(id);
-    };
-
-    private getCurrentPriceLevel = async (): Promise<PriceLevel> => {
-        const now = new Date();
-        // Catch skew
-        if (now.getSeconds() >= 58) {
-            now.setMinutes(now.getMinutes() + 1);
-            now.setSeconds(0);
-        }
-
-        const id = this.scheduleService.getId(now);
-        const { level } = await this.scheduleService.getTimeSlot(id);
-        return level;
+        this.createSchedule.stop();
     };
 }

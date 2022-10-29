@@ -68,10 +68,10 @@ export default async function createApp(
     const ioService = new IoService(gpioConnector);
 
     /* CONTROLLER */
-    const homeController = new HomeController(scheduleService, thermostatService);
+    const homeController = new HomeController(scheduleService, thermostatService, ioService);
 
     /* SCHEDULER */
-    const scheduler = new Scheduler(thermostatService, scheduleService, ioService);
+    const scheduler = new Scheduler(homeController, thermostatService, ioService);
     scheduler.setup();
     scheduler.start();
 
