@@ -1,18 +1,14 @@
-import { MutationSetHeatingTimeSlotArgs, State } from '../../generated/graphql';
-import { Schedule } from '../../models/models';
-import SpotPriceService from '../../services/spot-price.service';
+import { HomeController } from '../../controllers/home.controller';
+import { MutationSetHeatingForTimeSlotArgs, State, TimeSlot } from '../../generated/graphql';
 
 export default class SetHeatingScheduleMutationResolver {
-    private readonly spotPriceService: SpotPriceService;
-    constructor(spotPriceService: SpotPriceService) {
-        this.spotPriceService = spotPriceService;
-    }
+    constructor(private homeController: HomeController) {}
 
     public resolve = async (
         _parent: unknown,
-        args: MutationSetHeatingTimeSlotArgs,
+        args: MutationSetHeatingForTimeSlotArgs,
         _context: unknown,
-    ): Promise<Schedule> => {
-        return this.spotPriceService.overrideHeatingSchedule(args.interval, args.startTime, args.state === State.On);
+    ): Promise<TimeSlot> => {
+        return this.homeController.updateHeatingInstruction(args.id, args.state === State.On);
     };
 }

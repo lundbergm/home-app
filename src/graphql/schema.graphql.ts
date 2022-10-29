@@ -3,14 +3,10 @@ import { gql } from 'apollo-server';
 const typeDefs = gql`
     type Query {
         """
-        The hourly electrical spot prices.
+        Hourly schedule with spot prices and how to best use electical power based on price for one day.
+        Date as "yyyy-MM-dd".
         """
-        spotPrice(interval: Interval!): [SpotPrice!]!
-
-        """
-        Hourly schedule for how to best use electical power based on price.
-        """
-        heatingSchedule(interval: Interval!): [TimeSlot!]!
+        heatingSchedule(date: String!): [TimeSlot!]!
 
         """
         Current thermostat info.
@@ -19,12 +15,10 @@ const typeDefs = gql`
     }
 
     type Mutation {
-        setHeatingCartridge(state: State!): State!
-
         """
         Override heating schedule timeslot with new value
         """
-        setHeatingTimeSlot(interval: Interval!, startTime: String!, state: State!): [TimeSlot!]!
+        setHeatingForTimeSlot(id: Int!, state: State!): TimeSlot!
     }
 
     type ThermostatInfo {
@@ -42,38 +36,29 @@ const typeDefs = gql`
     }
 
     type TimeSlot {
-        "The start time of the time slot"
-        startsAt: String!
+        "The time slot id."
+        id: Int!
 
-        "The price level compared to recent price values."
+        "The start time of the time slot."
+        startTime: String!
+
+        "The start time of the time slot."
+        endTime: String!
+
+        "The price level compared to the daily prices."
         level: PriceLevel!
 
         "Should the heating cartridge be used during this hour."
         heatingCartridge: Boolean!
 
-        "Nordpool spot price."
-        energy: Float!
-    }
-
-    type Test {
-        title: String
-    }
-
-    type SpotPrice {
-        "The total price (energy + taxes)."
+        "Nordpool spot price with tax. (energy + tax)"
         total: Float!
 
         "Nordpool spot price."
         energy: Float!
 
-        "The tax part of the price."
+        "Tax on Nordpool spot price."
         tax: Float!
-
-        "The start time of the price"
-        startsAt: String!
-
-        "The price level compared to recent price values."
-        level: PriceLevel!
     }
 
     enum Interval {

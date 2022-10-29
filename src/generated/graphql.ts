@@ -24,20 +24,13 @@ export enum Interval {
 
 export type Mutation = {
   __typename?: 'Mutation';
-  setHeatingCartridge: State;
   /** Override heating schedule timeslot with new value */
-  setHeatingTimeSlot: Array<TimeSlot>;
+  setHeatingForTimeSlot: TimeSlot;
 };
 
 
-export type MutationSetHeatingCartridgeArgs = {
-  state: State;
-};
-
-
-export type MutationSetHeatingTimeSlotArgs = {
-  interval: Interval;
-  startTime: Scalars['String'];
+export type MutationSetHeatingForTimeSlotArgs = {
+  id: Scalars['Int'];
   state: State;
 };
 
@@ -56,47 +49,24 @@ export enum PriceLevel {
 
 export type Query = {
   __typename?: 'Query';
-  /** The hourly electrical spot prices. */
-  spotPrice: Array<SpotPrice>;
-  /** Hourly schedule for how to best use electical power based on price. */
+  /**
+   * Hourly schedule with spot prices and how to best use electical power based on price for one day.
+   * Date as "yyyy-MM-dd".
+   */
   heatingSchedule: Array<TimeSlot>;
   /** Current thermostat info. */
   thermostatInfo: Array<ThermostatInfo>;
 };
 
 
-export type QuerySpotPriceArgs = {
-  interval: Interval;
-};
-
-
 export type QueryHeatingScheduleArgs = {
-  interval: Interval;
-};
-
-export type SpotPrice = {
-  __typename?: 'SpotPrice';
-  /** The total price (energy + taxes). */
-  total: Scalars['Float'];
-  /** Nordpool spot price. */
-  energy: Scalars['Float'];
-  /** The tax part of the price. */
-  tax: Scalars['Float'];
-  /** The start time of the price */
-  startsAt: Scalars['String'];
-  /** The price level compared to recent price values. */
-  level: PriceLevel;
+  date: Scalars['String'];
 };
 
 export enum State {
   On = 'ON',
   Off = 'OFF'
 }
-
-export type Test = {
-  __typename?: 'Test';
-  title?: Maybe<Scalars['String']>;
-};
 
 export type ThermostatInfo = {
   __typename?: 'ThermostatInfo';
@@ -110,14 +80,22 @@ export type ThermostatInfo = {
 
 export type TimeSlot = {
   __typename?: 'TimeSlot';
-  /** The start time of the time slot */
-  startsAt: Scalars['String'];
-  /** The price level compared to recent price values. */
+  /** The time slot id. */
+  id: Scalars['Int'];
+  /** The start time of the time slot. */
+  startTime: Scalars['String'];
+  /** The start time of the time slot. */
+  endTime: Scalars['String'];
+  /** The price level compared to the daily prices. */
   level: PriceLevel;
   /** Should the heating cartridge be used during this hour. */
   heatingCartridge: Scalars['Boolean'];
+  /** Nordpool spot price with tax. (energy + tax) */
+  total: Scalars['Float'];
   /** Nordpool spot price. */
   energy: Scalars['Float'];
+  /** Tax on Nordpool spot price. */
+  tax: Scalars['Float'];
 };
 
 
@@ -191,15 +169,13 @@ export type DirectiveResolverFn<TResult = {}, TParent = {}, TContext = {}, TArgs
 export type ResolversTypes = {
   Interval: Interval;
   Mutation: ResolverTypeWrapper<{}>;
-  String: ResolverTypeWrapper<Scalars['String']>;
+  Int: ResolverTypeWrapper<Scalars['Int']>;
   PriceLevel: PriceLevel;
   Query: ResolverTypeWrapper<{}>;
-  SpotPrice: ResolverTypeWrapper<SpotPrice>;
-  Float: ResolverTypeWrapper<Scalars['Float']>;
+  String: ResolverTypeWrapper<Scalars['String']>;
   State: State;
-  Test: ResolverTypeWrapper<Test>;
   ThermostatInfo: ResolverTypeWrapper<ThermostatInfo>;
-  Int: ResolverTypeWrapper<Scalars['Int']>;
+  Float: ResolverTypeWrapper<Scalars['Float']>;
   Boolean: ResolverTypeWrapper<Scalars['Boolean']>;
   TimeSlot: ResolverTypeWrapper<TimeSlot>;
 };
@@ -207,40 +183,22 @@ export type ResolversTypes = {
 /** Mapping between all available schema types and the resolvers parents */
 export type ResolversParentTypes = {
   Mutation: {};
-  String: Scalars['String'];
-  Query: {};
-  SpotPrice: SpotPrice;
-  Float: Scalars['Float'];
-  Test: Test;
-  ThermostatInfo: ThermostatInfo;
   Int: Scalars['Int'];
+  Query: {};
+  String: Scalars['String'];
+  ThermostatInfo: ThermostatInfo;
+  Float: Scalars['Float'];
   Boolean: Scalars['Boolean'];
   TimeSlot: TimeSlot;
 };
 
 export type MutationResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']> = {
-  setHeatingCartridge?: Resolver<ResolversTypes['State'], ParentType, ContextType, RequireFields<MutationSetHeatingCartridgeArgs, 'state'>>;
-  setHeatingTimeSlot?: Resolver<Array<ResolversTypes['TimeSlot']>, ParentType, ContextType, RequireFields<MutationSetHeatingTimeSlotArgs, 'interval' | 'startTime' | 'state'>>;
+  setHeatingForTimeSlot?: Resolver<ResolversTypes['TimeSlot'], ParentType, ContextType, RequireFields<MutationSetHeatingForTimeSlotArgs, 'id' | 'state'>>;
 };
 
 export type QueryResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = {
-  spotPrice?: Resolver<Array<ResolversTypes['SpotPrice']>, ParentType, ContextType, RequireFields<QuerySpotPriceArgs, 'interval'>>;
-  heatingSchedule?: Resolver<Array<ResolversTypes['TimeSlot']>, ParentType, ContextType, RequireFields<QueryHeatingScheduleArgs, 'interval'>>;
+  heatingSchedule?: Resolver<Array<ResolversTypes['TimeSlot']>, ParentType, ContextType, RequireFields<QueryHeatingScheduleArgs, 'date'>>;
   thermostatInfo?: Resolver<Array<ResolversTypes['ThermostatInfo']>, ParentType, ContextType>;
-};
-
-export type SpotPriceResolvers<ContextType = Context, ParentType extends ResolversParentTypes['SpotPrice'] = ResolversParentTypes['SpotPrice']> = {
-  total?: Resolver<ResolversTypes['Float'], ParentType, ContextType>;
-  energy?: Resolver<ResolversTypes['Float'], ParentType, ContextType>;
-  tax?: Resolver<ResolversTypes['Float'], ParentType, ContextType>;
-  startsAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  level?: Resolver<ResolversTypes['PriceLevel'], ParentType, ContextType>;
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
-};
-
-export type TestResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Test'] = ResolversParentTypes['Test']> = {
-  title?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
 export type ThermostatInfoResolvers<ContextType = Context, ParentType extends ResolversParentTypes['ThermostatInfo'] = ResolversParentTypes['ThermostatInfo']> = {
@@ -254,18 +212,20 @@ export type ThermostatInfoResolvers<ContextType = Context, ParentType extends Re
 };
 
 export type TimeSlotResolvers<ContextType = Context, ParentType extends ResolversParentTypes['TimeSlot'] = ResolversParentTypes['TimeSlot']> = {
-  startsAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  id?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  startTime?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  endTime?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   level?: Resolver<ResolversTypes['PriceLevel'], ParentType, ContextType>;
   heatingCartridge?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  total?: Resolver<ResolversTypes['Float'], ParentType, ContextType>;
   energy?: Resolver<ResolversTypes['Float'], ParentType, ContextType>;
+  tax?: Resolver<ResolversTypes['Float'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
 export type Resolvers<ContextType = Context> = {
   Mutation?: MutationResolvers<ContextType>;
   Query?: QueryResolvers<ContextType>;
-  SpotPrice?: SpotPriceResolvers<ContextType>;
-  Test?: TestResolvers<ContextType>;
   ThermostatInfo?: ThermostatInfoResolvers<ContextType>;
   TimeSlot?: TimeSlotResolvers<ContextType>;
 };

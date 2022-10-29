@@ -39,3 +39,12 @@ $ npm i
 $ npm run build
 $ nohup node --noexpose_wasm build/main/index.js&
 ```
+
+## TODO
+
+- log thermostat values to db
+- run thermostat conf from db
+- scale prices to öre
+- retry all connections with modbus on fail
+
+- deprecate spot-price-service

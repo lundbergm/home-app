@@ -1,10 +1,19 @@
-import { ReginConnector, ReginState } from '../connectors/regin.connector';
+import { ReginConnector } from '../connectors/regin.connector';
+
+export interface ThermostatInfo {
+    name: string;
+    deviceAddress: number;
+    roomTemperature: number;
+    setpoint: number;
+    heatOutputPercentage: number;
+    allowHeating: boolean;
+}
 
 export class ThermostatService {
     constructor(private reginConnector: ReginConnector) {}
 
     // public listThermostats(): Thermostat[] {}
-    public async getThermostatStatus(): Promise<ReginState[]> {
+    public async getThermostatStatus(): Promise<ThermostatInfo[]> {
         return this.reginConnector.getStatus();
     }
     // public async getThermostatStatuses(): Promise<ReginState[]> {}

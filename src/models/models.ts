@@ -29,8 +29,12 @@ export type SpotPriceCollection = SpotPrice[];
 export type Schedule = TimeSlot[];
 
 export interface TimeSlot {
-    startsAt: string;
+    id: number;
+    startTime: string;
+    endTime: string;
     level: PriceLevel;
     heatingCartridge: boolean;
+    total: number;
     energy: number;
+    tax: number;
 }

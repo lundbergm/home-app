@@ -12,10 +12,14 @@ async function main() {
         console.info(`🚀 Server ready at port 4000.`);
     });
 
-    const onSignal = async () => {
+    const onSignal = async (): Promise<void> => {
         console.info('cleanup started...');
-        for (const func of shutdownFunctions) {
-            func();
+        for await (const func of shutdownFunctions) {
+            try {
+                await func();
+            } catch (error) {
+                console.error('Error during shutdown', error);
+            }
         }
     };
 

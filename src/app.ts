@@ -4,16 +4,19 @@ import express from 'express';
 import morgan from 'morgan';
 import path from 'path';
 import { AppConfig } from './config';
+import { DatabaseConnector } from './connectors/db.connector';
 import GpioConnector from './connectors/gpio.connector';
 import { MockedModbusConnector } from './connectors/mocked-modbus.connector';
 import MockedSpotPriceConnector from './connectors/mocked-spot-price.connector';
 import { ReginConnector } from './connectors/regin.connector';
 import { SerialModbusConnector } from './connectors/serial-modbus.connector';
 import TibberSpotPriceConnector from './connectors/tibber-spot-price.connector';
+import { HomeController } from './controllers/home.controller';
 import graphqlResolvers from './graphql';
 import typeDefs from './graphql/schema.graphql';
 import Scheduler from './scheduler';
-import SpotPriceService from './services/spot-price.service';
+import { IoService } from './services/io.service';
+import { ScheduleService } from './services/schedule.service';
 import { ThermostatService } from './services/thermostat.service';
 
 const THERMOSTATS: Array<{ name: string; deviceAddress: number; writeBaseConfig?: boolean; backlight?: boolean }> = [
@@ -28,13 +31,12 @@ export type Context = Record<string, unknown>;
 
 export default async function createApp(
     config: AppConfig,
-): Promise<{ app: express.Express; shutdownFunctions: Array<() => void> }> {
+): Promise<{ app: express.Express; shutdownFunctions: Array<() => Promise<void>> | Array<() => void> }> {
     const app = express();
     app.use(morgan('tiny'));
     app.use(cors());
 
     /* CONNECTORS */
-
     const spotPriceConnector = config.tibber.mockMode
         ? new MockedSpotPriceConnector()
         : new TibberSpotPriceConnector(config.tibber.baseUrl, config.tibber.homeId, config.tibber.accessToken);
@@ -57,17 +59,23 @@ export default async function createApp(
         }
     }
     console.log('Registered devices:', reginConnector.getUnits());
+    const dbConnector = new DatabaseConnector();
+    await dbConnector.init();
 
     /* SERVICES */
-    const spotPriceService = new SpotPriceService(spotPriceConnector, gpioConnector);
     const thermostatService = new ThermostatService(reginConnector);
+    const scheduleService = new ScheduleService(dbConnector, spotPriceConnector);
+    const ioService = new IoService(gpioConnector);
+
+    /* CONTROLLER */
+    const homeController = new HomeController(scheduleService, thermostatService);
 
     /* SCHEDULER */
-    const scheduler = new Scheduler(spotPriceService, thermostatService);
+    const scheduler = new Scheduler(thermostatService, scheduleService, ioService);
     scheduler.setup();
     scheduler.start();
 
-    const resolvers = await graphqlResolvers({ spotPriceService, thermostatService });
+    const resolvers = await graphqlResolvers({ thermostatService, homeController });
 
     const server = new ApolloServer({
         typeDefs,
