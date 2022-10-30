@@ -63,7 +63,7 @@ export default async function createApp(
     await dbConnector.init();
 
     /* SERVICES */
-    const thermostatService = new ThermostatService(reginConnector);
+    const thermostatService = new ThermostatService(dbConnector, reginConnector);
     const scheduleService = new ScheduleService(dbConnector, spotPriceConnector);
     const ioService = new IoService(gpioConnector);
 

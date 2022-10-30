@@ -22,6 +22,17 @@ interface ScheduleRow {
     heatingCartridge: number;
 }
 
+interface RoomInfo {
+    timestamp: number;
+    date: string;
+    deviceAddress: number;
+    name: string;
+    roomTemperature: number;
+    setpoint: number;
+    heatOutputPercentage: number;
+    allowHeating: boolean;
+}
+
 export class DatabaseConnector {
     private db: Database;
     constructor() {
@@ -41,6 +52,25 @@ export class DatabaseConnector {
                         tax REAL NOT NULL,
                         level TEXT NOT NULL,
                         heatingCartridge INTEGER NOT NULL
+                    );`,
+                    (err) => {
+                        if (err) {
+                            return reject(err);
+                        }
+                        resolve();
+                    },
+                );
+                this.db.run(
+                    `CREATE TABLE RoomInfo (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        timestamp INTERGER NOT NULL,
+                        date TEXT NOT NULL,
+                        deviceAddress INTEGER NOT NULL,
+                        name TEXT NOT NULL,
+                        roomTemperature REAL NOT NULL,
+                        setpoint REAL NOT NULL,
+                        heatOutputPercentage INTEGER NOT NULL,
+                        allowHeating INTEGER NOT NULL
                     );`,
                     (err) => {
                         if (err) {
@@ -101,7 +131,7 @@ export class DatabaseConnector {
                     if (err) {
                         return reject(err);
                     }
-                    resolve(rows[0].numTimeSlots >= 23); // What appens on the day of DST change?
+                    resolve(rows[0].numTimeSlots >= 23); // What appens on the day of DST change? 23 or 25 timeslots.
                 },
             );
         });
@@ -122,6 +152,32 @@ export class DatabaseConnector {
                     timeslot.tax,
                     timeslot.level,
                     timeslot.heatingCartridge ? 1 : 0,
+                    (err: Error) => {
+                        if (err) {
+                            return reject(err);
+                        }
+                        resolve();
+                    },
+                );
+            });
+        }
+    }
+    public async insertRoomInfo(roomInfo: RoomInfo[]): Promise<void> {
+        const stmt = this.db.prepare(
+            `INSERT INTO RoomInfo (timestamp, date, deviceAddress, name, roomTemperature, setpoint, heatOutputPercentage, allowHeating) VALUES (?, ?, ?, ?, ?, ?, ?, ?);`,
+        );
+
+        for await (const info of roomInfo) {
+            await new Promise<void>((resolve, reject) => {
+                stmt.run(
+                    info.timestamp,
+                    info.date,
+                    info.deviceAddress,
+                    info.name,
+                    info.roomTemperature,
+                    info.setpoint,
+                    info.heatOutputPercentage,
+                    info.allowHeating ? 1 : 0,
                     (err: Error) => {
                         if (err) {
                             return reject(err);

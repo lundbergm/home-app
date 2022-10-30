@@ -1,3 +1,4 @@
+import { DatabaseConnector } from '../connectors/db.connector';
 import { ReginConnector } from '../connectors/regin.connector';
 
 export interface ThermostatInfo {
@@ -10,7 +11,7 @@ export interface ThermostatInfo {
 }
 
 export class ThermostatService {
-    constructor(private reginConnector: ReginConnector) {}
+    constructor(private dbConnector: DatabaseConnector, private reginConnector: ReginConnector) {}
 
     // public listThermostats(): Thermostat[] {}
     public async getThermostatStatus(): Promise<ThermostatInfo[]> {
@@ -23,5 +24,15 @@ export class ThermostatService {
         } catch (error) {
             console.error('Error setting heating state', error);
         }
+    }
+
+    public async logThermostatInfo(): Promise<void> {
+        const thermostatInfo = await this.getThermostatStatus();
+        const now = new Date();
+        const timestamp = Math.floor(+now / 1000);
+
+        const date = new Date().toLocaleDateString('sv-SE', { timeZone: 'Europe/Stockholm' });
+        const roomInfo = thermostatInfo.map((info) => ({ ...info, timestamp, date }));
+        await this.dbConnector.insertRoomInfo(roomInfo);
     }
 }

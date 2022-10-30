@@ -9,6 +9,18 @@ CREATE TABLE Schedule (
     heatingCartridge INTEGER NOT NULL
 );
 
+CREATE TABLE RoomInfo (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    timestamp INTERGER NOT NULL,
+    date TEXT NOT NULL,
+    deviceAddress INTEGER NOT NULL,
+    name TEXT NOT NULL,
+    roomTemperature REAL NOT NULL,
+    setpoint REAL NOT NULL,
+    heatOutputPercentage INTEGER NOT NULL,
+    allowHeating INTEGER NOT NULL
+);
+
 MAYBE ADD DAY TO SCHEMA???
 
 

@@ -42,9 +42,10 @@ $ nohup node --noexpose_wasm build/main/index.js&
 
 ## TODO
 
-- log thermostat values to db
 - run thermostat conf from db
 - scale prices to öre
 - retry all connections with modbus on fail
+- indicate state on thermostats
 
+- log thermostat values to db
 - deprecate spot-price-service

@@ -9,6 +9,7 @@ const EVERY_10TH_MIN_AFTER_12 = '*/10 12-23 * * *';
 export default class Scheduler {
     private setHeatingCartridge: CronJob;
     private createSchedule: CronJob;
+    private logRoomInfo: CronJob;
 
     constructor(
         private readonly homeController: HomeController,
@@ -51,17 +52,27 @@ export default class Scheduler {
             undefined,
             true,
         );
+        this.logRoomInfo = new CronJob(EVERY_MINUTE, async () => {
+            try {
+                console.log('Logging room info...');
+                await this.thermostatService.logThermostatInfo();
+            } catch (error) {
+                console.error(error);
+            }
+        });
     }
 
     public start(): void {
         console.log('Starting cron jobs...');
         this.setHeatingCartridge.start();
         this.createSchedule.start();
+        this.logRoomInfo.start();
     }
 
     public stop = (): void => {
         console.log('Stopping cron jobs...');
         this.setHeatingCartridge.stop();
         this.createSchedule.stop();
+        this.logRoomInfo.stop();
     };
 }
