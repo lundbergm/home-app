@@ -60,7 +60,7 @@ export class ReginConnector {
     }
 
     public async registerDevice(
-        device: Thermostat & { writeBaseConfig?: boolean; backlight?: boolean },
+        device: Thermostat & { writeBaseConfig?: boolean; backlight?: 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 },
     ): Promise<void> {
         const { name, deviceAddress } = device;
         if (device.writeBaseConfig === true) {
@@ -79,7 +79,7 @@ export class ReginConnector {
         await this.modbusConnector.writeRegister(
             deviceAddress,
             CONFIG_LOW_BACKLIGHT.address,
-            device.backlight === false ? 0 : CONFIG_LOW_BACKLIGHT.value,
+            device.backlight ?? CONFIG_LOW_BACKLIGHT.value,
         );
         await this.modbusConnector.writeRegister(
             deviceAddress,
@@ -141,29 +141,41 @@ export class ReginConnector {
             throw new Error(`Device with address: ${deviceAddress} not found.`);
         }
 
-        const roomTemperature =
-            (await this.modbusConnector.readInputRegister(deviceAddress, ROOM_TEMPERATURE.address)) /
-            ROOM_TEMPERATURE.scaleFactor;
-        const setpointOffset =
-            (await this.modbusConnector.readHoldingRegister(deviceAddress, SETPOINT_OFFSET.address)) /
-            SETPOINT_OFFSET.scaleFactor;
-        const baseSetpoint =
-            (await this.modbusConnector.readHoldingRegister(deviceAddress, BASE_SETPOINT.address)) /
-            BASE_SETPOINT.scaleFactor;
-        const heatOutputPercentage =
-            (await this.modbusConnector.readInputRegister(deviceAddress, HEAT_OUTPUT.address)) /
-            HEAT_OUTPUT.scaleFactor;
-        const heatOutputSelect =
-            (await this.modbusConnector.readHoldingRegister(deviceAddress, HEAT_OUTPUT_SELECT.address)) /
-            HEAT_OUTPUT.scaleFactor;
+        try {
+            const roomTemperature =
+                (await this.modbusConnector.readInputRegister(deviceAddress, ROOM_TEMPERATURE.address)) /
+                ROOM_TEMPERATURE.scaleFactor;
+            const setpointOffset =
+                (await this.modbusConnector.readHoldingRegister(deviceAddress, SETPOINT_OFFSET.address)) /
+                SETPOINT_OFFSET.scaleFactor;
+            const baseSetpoint =
+                (await this.modbusConnector.readHoldingRegister(deviceAddress, BASE_SETPOINT.address)) /
+                BASE_SETPOINT.scaleFactor;
+            const heatOutputPercentage =
+                (await this.modbusConnector.readInputRegister(deviceAddress, HEAT_OUTPUT.address)) /
+                HEAT_OUTPUT.scaleFactor;
+            const heatOutputSelect =
+                (await this.modbusConnector.readHoldingRegister(deviceAddress, HEAT_OUTPUT_SELECT.address)) /
+                HEAT_OUTPUT.scaleFactor;
 
-        return {
-            name: device.name,
-            deviceAddress: device.deviceAddress,
-            roomTemperature,
-            setpoint: baseSetpoint + setpointOffset,
-            heatOutputPercentage,
-            allowHeating: heatOutputSelect === HEAT_OUTPUT_AUTO,
-        };
+            return {
+                name: device.name,
+                deviceAddress: device.deviceAddress,
+                roomTemperature,
+                setpoint: baseSetpoint + setpointOffset,
+                heatOutputPercentage,
+                allowHeating: heatOutputSelect === HEAT_OUTPUT_AUTO,
+            };
+        } catch (error) {
+            console.error(`Error while reading status for device: ${deviceAddress}`, error);
+            return {
+                name: device.name,
+                deviceAddress: device.deviceAddress,
+                roomTemperature: 0,
+                setpoint: 0,
+                heatOutputPercentage: 0,
+                allowHeating: false,
+            };
+        }
     }
 }

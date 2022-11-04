@@ -42,6 +42,9 @@ export class SerialModbusConnector {
 
     public async readCoil(deviceAddress: number, dataAddress: number): Promise<boolean> {
         await this.mutex.lock();
+        if (!this.client.isOpen) {
+            await this.connect();
+        }
         this.client.setID(deviceAddress);
         const data = await this.client.readCoils(dataAddress - 1, 1);
         this.mutex.unlock();
@@ -50,6 +53,9 @@ export class SerialModbusConnector {
 
     public async readCoils(deviceAddress: number, dataAddress: number, length: number): Promise<boolean[]> {
         await this.mutex.lock();
+        if (!this.client.isOpen) {
+            await this.connect();
+        }
         this.client.setID(deviceAddress);
         const data = await this.client.readCoils(dataAddress - 1, length);
         this.mutex.unlock();
@@ -58,6 +64,9 @@ export class SerialModbusConnector {
 
     public async readDiscreteInput(deviceAddress: number, dataAddress: number): Promise<boolean> {
         await this.mutex.lock();
+        if (!this.client.isOpen) {
+            await this.connect();
+        }
         this.client.setID(deviceAddress);
         const data = await this.client.readDiscreteInputs(dataAddress - 1, 1);
         this.mutex.unlock();
@@ -66,6 +75,9 @@ export class SerialModbusConnector {
 
     public async readDiscreteInputs(deviceAddress: number, dataAddress: number, length: number): Promise<boolean[]> {
         await this.mutex.lock();
+        if (!this.client.isOpen) {
+            await this.connect();
+        }
         this.client.setID(deviceAddress);
         const data = await this.client.readDiscreteInputs(dataAddress - 1, length);
         this.mutex.unlock();
@@ -78,6 +90,9 @@ export class SerialModbusConnector {
         signed: boolean = true,
     ): Promise<number> {
         await this.mutex.lock();
+        if (!this.client.isOpen) {
+            await this.connect();
+        }
         this.client.setID(deviceAddress);
         const data = await this.client.readHoldingRegisters(dataAddress - 1, 1);
         this.mutex.unlock();
@@ -91,6 +106,9 @@ export class SerialModbusConnector {
         signed: boolean = true,
     ): Promise<number[]> {
         await this.mutex.lock();
+        if (!this.client.isOpen) {
+            await this.connect();
+        }
         this.client.setID(deviceAddress);
         const data = await this.client.readHoldingRegisters(dataAddress - 1, length);
         this.mutex.unlock();
@@ -103,6 +121,9 @@ export class SerialModbusConnector {
         signed: boolean = true,
     ): Promise<number> {
         await this.mutex.lock();
+        if (!this.client.isOpen) {
+            await this.connect();
+        }
         this.client.setID(deviceAddress);
         const data = await this.client.readInputRegisters(dataAddress - 1, 1);
         this.mutex.unlock();
@@ -116,6 +137,9 @@ export class SerialModbusConnector {
         signed: boolean = true,
     ): Promise<number[]> {
         await this.mutex.lock();
+        if (!this.client.isOpen) {
+            await this.connect();
+        }
         this.client.setID(deviceAddress);
         const data = await this.client.readInputRegisters(dataAddress - 1, length);
         this.mutex.unlock();
@@ -124,6 +148,9 @@ export class SerialModbusConnector {
 
     public async writeCoil(deviceAddress: number, dataAddress: number, state: boolean): Promise<void> {
         await this.mutex.lock();
+        if (!this.client.isOpen) {
+            await this.connect();
+        }
         this.client.setID(deviceAddress);
         await this.client.writeCoil(dataAddress - 1, state);
         this.mutex.unlock();
@@ -131,6 +158,9 @@ export class SerialModbusConnector {
 
     public async writeCoils(deviceAddress: number, dataAddress: number, states: boolean[]): Promise<void> {
         await this.mutex.lock();
+        if (!this.client.isOpen) {
+            await this.connect();
+        }
         this.client.setID(deviceAddress);
         await this.client.writeCoils(dataAddress - 1, states);
         this.mutex.unlock();
@@ -139,6 +169,9 @@ export class SerialModbusConnector {
     // TODO: Handle signed
     public async writeRegister(deviceAddress: number, dataAddress: number, value: number): Promise<void> {
         await this.mutex.lock();
+        if (!this.client.isOpen) {
+            await this.connect();
+        }
         this.client.setID(deviceAddress);
         await this.client.writeRegister(dataAddress - 1, value);
         this.mutex.unlock();
@@ -147,10 +180,38 @@ export class SerialModbusConnector {
     // TODO: Handle signed
     public async writeRegisters(deviceAddress: number, dataAddress: number, values: number[]): Promise<void> {
         await this.mutex.lock();
+        if (!this.client.isOpen) {
+            await this.connect();
+        }
         this.client.setID(deviceAddress);
         await this.client.writeRegisters(dataAddress - 1, values);
         this.mutex.unlock();
     }
+
+    // function wrap<T extends Function>(fn: T): T {
+    //     return <any>function(...args) {
+    //         return fn(...args)
+    //     };
+    // }
+
+    // private async withRetry<T extends Function>(func: T, retries: number = 3): Promise<T> {
+    //     if (retries > 0) {
+    //         return func();
+    //     }
+    // }
+    // private async withRetry2<T extends Function>(func: () => Promise<T>, retries: number = 3): Promise<T> {
+    //     return new Promise((resolve, reject) => {
+    //         const retry = async (err: Error) => {
+    //             if (retries > 0) {
+    //                 retries--;
+    //                 await func().then(resolve).catch(retry);
+    //             } else {
+    //                 reject(err);
+    //             }
+    //         };
+    //         func();
+    //     });
+    // }
 
     private toSinged(value: number): number {
         return value > 32767 ? value - 65536 : value;

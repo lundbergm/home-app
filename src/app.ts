@@ -19,11 +19,16 @@ import { IoService } from './services/io.service';
 import { ScheduleService } from './services/schedule.service';
 import { ThermostatService } from './services/thermostat.service';
 
-const THERMOSTATS: Array<{ name: string; deviceAddress: number; writeBaseConfig?: boolean; backlight?: boolean }> = [
-    { name: 'Vardagsrum', deviceAddress: 139, backlight: false },
+const THERMOSTATS: Array<{
+    name: string;
+    deviceAddress: number;
+    writeBaseConfig?: boolean;
+    backlight?: 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10;
+}> = [
+    { name: 'Vardagsrum', deviceAddress: 139, backlight: 1 },
     { name: 'Kök', deviceAddress: 124 },
     { name: 'M', deviceAddress: 169 },
-    { name: 'Sovrum', deviceAddress: 15, backlight: false },
+    { name: 'Sovrum', deviceAddress: 15, backlight: 0 },
     { name: 'Hall', deviceAddress: 113 },
 ];
 

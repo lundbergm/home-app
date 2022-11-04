@@ -50,8 +50,9 @@ $ kill <PID>
 
 - run thermostat conf from db
 - scale prices to öre
-- retry all connections with modbus on fail
 - indicate state on thermostats
+  
+- retry all connections with modbus on fail
 
 - mutex for modbus
 - log thermostat values to db
