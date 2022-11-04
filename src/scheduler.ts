@@ -4,7 +4,7 @@ import { IoService } from './services/io.service';
 import { ThermostatService } from './services/thermostat.service';
 
 const EVERY_MINUTE = '* * * * *'; // TODO: FIX
-const EVERY_MINUTE_OFFSET = '* * * * * 10'; // TODO: FIX
+const EVERY_MINUTE_OFFSET = '10 * * * * *';
 const EVERY_10TH_MIN_AFTER_12 = '*/10 12-23 * * *';
 
 export default class Scheduler {
@@ -41,7 +41,7 @@ export default class Scheduler {
             EVERY_10TH_MIN_AFTER_12,
             async () => {
                 try {
-                    console.log('Running schedule generation...');
+                    console.log(`${new Date().toISOString()}: Running schedule generation...`);
                     await this.homeController.generateSchedule();
                 } catch (error) {
                     console.error(error);
@@ -55,7 +55,7 @@ export default class Scheduler {
         );
         this.logRoomInfo = new CronJob(EVERY_MINUTE_OFFSET, async () => {
             try {
-                console.log('Logging room info...');
+                console.log(`${new Date().toISOString()}: Logging room info...`);
                 await this.thermostatService.logThermostatInfo();
             } catch (error) {
                 console.error(error);

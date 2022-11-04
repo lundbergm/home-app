@@ -40,6 +40,12 @@ $ npm run build
 $ nohup node --noexpose_wasm build/main/index.js&
 ```
 
+## Terminate
+```bash
+$ lsof -i :4000
+$ kill <PID>
+```
+
 ## TODO
 
 - run thermostat conf from db
@@ -47,5 +53,6 @@ $ nohup node --noexpose_wasm build/main/index.js&
 - retry all connections with modbus on fail
 - indicate state on thermostats
 
+- mutex for modbus
 - log thermostat values to db
 - deprecate spot-price-service
