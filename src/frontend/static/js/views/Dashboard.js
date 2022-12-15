@@ -10,16 +10,19 @@ export default class extends AbstractView {
     async js() {
 
     }
-    async getSchedule(interval) {
+    async getSchedule(date) {
         const query = `
-        query Schema($interval: Interval!) {
-            heatingSchedule(interval: $interval) {
-                startsAt
-                level
-                heatingCartridge
-                energy
+        query HeatingSchedule($date: String!) {
+            heatingSchedule(date: $date) {
+              startTime
+              endTime
+              level
+              heatingCartridge
+              total
+              energy
+              tax
             }
-        }
+          }
     `;
     
     const options = {
@@ -30,7 +33,7 @@ export default class extends AbstractView {
         body: JSON.stringify({
         query: query,
         variables: {
-            interval: interval.toUpperCase(),
+            date,
         }
         })
     };
@@ -39,15 +42,47 @@ export default class extends AbstractView {
     return resp.data.heatingSchedule
     }
 
+    async getRoomInfo() {
+        const query = `
+        query ThermostatInfo {
+            thermostatInfo {
+              name
+              roomTemperature
+              setpoint
+              heatOutputPercentage
+              allowHeating
+            }
+          }
+    `;
+    
+    const options = {
+        method: "post",
+        headers: {
+        "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+        query: query,
+        })
+    };
+    
+    const resp = await ( await fetch(`http://192.168.50.36:4000/api/graphql`, options)).json();
+    return resp.data.thermostatInfo
+    }
+
     async renderCharts() {
-        const schedule = await this.getSchedule('today');
-        const prices = schedule.map((e) => ((e.energy * 100).toFixed(1)));
+        const date = new Date();
+        const dateStr = `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`;
+        const schedule = await this.getSchedule(dateStr);
+        const prices = schedule.map((e) => ((e.total * 100).toFixed(1)));
+        console.log((new Date().getHours() + new Date().getMinutes() / 60).toString());
         var lineOptions = {
             stroke: {
-                curve: 'smooth',
+                curve: 'stepline',
+                width: 3,
             },
             chart: {
                 width: '100%',
+                height: 250,
                 toolbar: {
                     show: false,
                   },
@@ -59,6 +94,19 @@ export default class extends AbstractView {
                 data: prices
               }
             ],
+            annotations: {
+                xaxis: [
+                  {
+                    x: new Date().getHours().toString(),
+                    borderColor: '#feb019',
+                    label: {
+                        style: {
+                        color: '#fff',
+                      },
+                    }
+                  }
+                ]
+              },
             xaxis: {
                 tickAmount: 12,
                 labels: {
@@ -112,6 +160,125 @@ export default class extends AbstractView {
         }
         var chart = new ApexCharts(document.querySelector('#chart'), lineOptions)
         chart.render()
+        
+        const roomInfo = await this.getRoomInfo();
+        const rooms = roomInfo.map((e) => (e.name));
+        const temperature = roomInfo.map((e) => (e.roomTemperature));
+        const setpoint = roomInfo.map((e) => (e.setpoint));
+        const heatOutputPercentage = roomInfo.map((e) => (e.heatOutputPercentage));
+        const maxValue = Math.max(...temperature, ...setpoint);
+        const yAxisMaxValue = Math.max(Math.ceil(maxValue * 1.1), 25);
+        var roomOptions = {
+            series: [
+                {
+                    name: 'Temperature',
+                    data: temperature,
+                },
+                {
+                    name: 'Setpoint',
+                    data: setpoint, 
+                },
+                {
+                    name: 'Heating',
+                    data: heatOutputPercentage
+                }
+            ],
+            chart: {
+                width: '100%',
+                type: 'bar',
+                height: 250,
+                toolbar: {
+                    show: false,
+                },
+            },
+            plotOptions: {
+                bar: {
+                    horizontal: false,
+                    columnWidth: '55%',
+                    endingShape: 'rounded',
+                    // dataLabels: {
+                    //     position: 'top', // top, center, bottom
+                    // },
+                },
+            },
+            dataLabels: {
+            enabled: false
+            },
+            stroke: {
+            show: true,
+            width: 2,
+            colors: ['transparent']
+            },
+            xaxis: {
+                labels: {
+                    style: {
+                        colors: '#d3d3d3',
+                        fontSize: '11px',
+                        fontFamily: 'monospace',
+                        fontWeight: 400,
+                    },
+                    rotate: 0,
+                },
+            categories: rooms, //['Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct'],
+            },
+            yaxis: [
+                {
+                    seriesName: 'Temperature',
+                    minWidth: 0,
+                    maxWidth: 25,
+                    min: 0,
+                    max: yAxisMaxValue,
+                    labels: {
+                        style: {
+                            colors: '#d3d3d3',
+                            fontSize: '11px',
+                            fontFamily: 'monospace',
+                            fontWeight: 400,
+                            cssClass: 'apexcharts-yaxis-label',
+                        },
+                        formatter: (value) => { return value.toFixed(0) },
+                    },
+                },
+                {
+                    seriesName: 'Setpoint',
+                    min: 0,
+                    max: yAxisMaxValue,
+                    show: false
+                },
+                {
+                    seriesName: 'Heating',
+                    opposite: true,
+                    minWidth: 0,
+                    maxWidth: 25,
+                    min: 0,
+                    max: 100,
+                    labels: {
+                        style: {
+                            colors: '#d3d3d3',
+                            fontSize: '11px',
+                            fontFamily: 'monospace',
+                            fontWeight: 400,
+                            cssClass: 'apexcharts-yaxis-label',
+                        },
+                        formatter: (value) => { return value.toFixed(0) },
+                    },
+
+            }
+        ],
+            fill: {
+            opacity: 1
+            },
+            tooltip: {
+            y: {
+                formatter: function (val) {
+                return val + " C"
+                }
+            }
+            }
+            };
+  
+        var roomChart = new ApexCharts(document.querySelector("#roomChart"), roomOptions);
+        roomChart.render()
     }
 
     async render() {
@@ -122,6 +289,9 @@ export default class extends AbstractView {
     async getHtml() {
         return `
         <div id="chart" class="Chart">
+        </div>
+        </br>
+        <div id="roomChart" class="Chart">
         </div>
         `;
     }

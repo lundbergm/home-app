@@ -33,16 +33,23 @@ export default class extends AbstractView {
 
     async getData() {   
         const query = `
-            query Schema($interval: Interval!) {
-                heatingSchedule(interval: $interval) {
-                    startsAt
-                    level
-                    heatingCartridge
-                    energy
+            query HeatingSchedule($date: String!) {
+                heatingSchedule(date: $date) {
+                  startTime
+                  endTime
+                  level
+                  heatingCartridge
+                  total
+                  energy
+                  tax
                 }
-            }
+              }
         `;
-      
+        const date = new Date();
+        if (this.tab === 'tomorrow') {
+            date.setDate(date.getDate() + 1);
+        }
+        const dateStr = `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`;
         const options = {
           method: "post",
           headers: {
@@ -51,7 +58,7 @@ export default class extends AbstractView {
           body: JSON.stringify({
             query: query,
             variables: {
-                interval: this.tab.toUpperCase(),
+                date: dateStr
             }
           })
         };
@@ -61,13 +68,13 @@ export default class extends AbstractView {
       }
 
       async getHtml() {
-          const getColor = (level) => {
-              switch (level) {
-                  case "VERY_CHEAP": {
-                      return '🟢';
-                    }
-                    case "CHEAP": {
-                        return '🔵';
+            const getColor = (level) => {
+            switch (level) {
+                case "VERY_CHEAP": {
+                    return '🟢';
+                }
+                case "CHEAP": {
+                    return '🔵';
                 }
                 case "NORMAL": {
                     return '⚪️';
@@ -90,21 +97,18 @@ export default class extends AbstractView {
             </ul>
         
             <div class="Schedule">
-            <h3>Today</h3>
             ${!isToday && data.heatingSchedule.length === 0 ? '<span>Waiting for spot prices...</span>' : ''}
             <div class="Schedule__list">
                 ${schedule.map((timeSlot) => {
                     const now = new Date();
-                    const startsAt = new Date(timeSlot.startsAt);
-                    const endsAt = new Date(timeSlot.startsAt);
-                    endsAt.setHours(endsAt.getHours() + 1);
+                    const startsAt = new Date(timeSlot.startTime);
+                    const endsAt = new Date(timeSlot.endTime);
                     const isNow = isToday && now >= startsAt && now < endsAt;
                     return `
                     <li class="Schedule__item${isNow ? '_now' : ''}">
                         ${getColor(timeSlot.level)}
                         ${timeSlot.heatingCartridge ? '✅' : '❌'}
-                        ${startsAt.toLocaleTimeString().substring(0, 5)}-
-                        ${endsAt.toLocaleTimeString().substring(0, 5)}: ${(timeSlot.energy * 100).toFixed(1)}
+                        ${startsAt.toLocaleTimeString().substring(0, 5)} - ${endsAt.toLocaleTimeString().substring(0, 5)}  ${(timeSlot.total * 100).toFixed(1)}
                     </li>`
                  }).join('')}
                 </div>
