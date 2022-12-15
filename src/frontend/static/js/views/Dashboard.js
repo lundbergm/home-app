@@ -184,6 +184,7 @@ export default class extends AbstractView {
                 }
             ],
             chart: {
+                foreColor: '#fff',
                 width: '100%',
                 type: 'bar',
                 height: 250,
@@ -196,18 +197,26 @@ export default class extends AbstractView {
                     horizontal: false,
                     columnWidth: '55%',
                     endingShape: 'rounded',
-                    // dataLabels: {
-                    //     position: 'top', // top, center, bottom
-                    // },
                 },
             },
             dataLabels: {
-            enabled: false
+                enabled: false
+            },
+            legend: {
+                labels: {
+                    colors: '#d3d3d3',
+                },
+                fontSize: '11px',
+                fontFamily: 'monospace',
+                fontWeight: 400,
+            },
+            markers: {
+                size: 0,
             },
             stroke: {
-            show: true,
-            width: 2,
-            colors: ['transparent']
+                show: true,
+                width: 2,
+                colors: ['transparent']
             },
             xaxis: {
                 labels: {
@@ -217,9 +226,9 @@ export default class extends AbstractView {
                         fontFamily: 'monospace',
                         fontWeight: 400,
                     },
-                    rotate: 0,
+                    rotate: -35,
                 },
-            categories: rooms, //['Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct'],
+            categories: rooms,
             },
             yaxis: [
                 {

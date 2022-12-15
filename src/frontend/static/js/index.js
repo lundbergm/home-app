@@ -6,16 +6,7 @@ import Settings from "./views/Settings.js";
 let menuOpen = false;
 //
 
-const pathToRegex = path => new RegExp("^" + path.replace(/\//g, "\\/").replace(/:\w+/g, "(.+)") + "$");
-
-const getParams = match => {
-    const values = match.result.slice(1);
-    const keys = Array.from(match.route.path.matchAll(/:(\w+)/g)).map(result => result[1]);
-
-    return Object.fromEntries(keys.map((key, i) => {
-        return [key, values[i]];
-    }));
-};
+const baseUrl = 'http://192.168.50.36:4000/api/graphql';
 
 const navigateTo = url => {
     history.pushState(null, null, url);
@@ -23,13 +14,12 @@ const navigateTo = url => {
 };
 
 const routes = [
-    { path: "/", view: new Dashboard() },
-    { path: "/schedule", view: new Schedule() },
-    { path: "/settings", view: new Settings() }
+    { path: "/", view: new Dashboard({ baseUrl }) },
+    { path: "/schedule", view: new Schedule({ baseUrl }) },
+    { path: "/settings", view: new Settings({ baseUrl }) }
 ];
 
 const router = async () => {
-    console.log(location.pathname);
     let page = routes.find(e => e.path === location.pathname);
     
     if (!page) {
@@ -59,10 +49,12 @@ const handleClickMenu = () => {
     menuOpen = !menuOpen;
     handleMenu();
 }
+
 const closeMenu = () => {
     menuOpen = false;
     handleMenu();
 }
+
 const handleMenu = () => {
     document.getElementById('menu-button-open').style.display = menuOpen ? 'none' : 'block';
     document.getElementById('menu-button-close').style.display = menuOpen ? 'block' : 'none';
