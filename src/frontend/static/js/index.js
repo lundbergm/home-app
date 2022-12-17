@@ -7,6 +7,7 @@ let menuOpen = false;
 //
 
 const baseUrl = 'http://192.168.50.36:4000/api/graphql';
+// const baseUrl = 'http://localhost:4000/api/graphql';
 
 const navigateTo = url => {
     history.pushState(null, null, url);

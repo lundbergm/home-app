@@ -1,9 +1,10 @@
 import { HomeController } from '../controllers/home.controller';
 import { Resolvers } from '../generated/graphql';
 import { ThermostatService } from '../services/thermostat.service';
+import CurrentRoomInfoResolver from './resolvers/current-room-info.resolver';
 import HeatingScheduleResolver from './resolvers/heating-schedule.resolver';
+import RoomInfoResolver from './resolvers/room-info.resolver';
 import SetHeatingScheduleMutationResolver from './resolvers/set-schedule-time-slot.mutation.resolver';
-import ThermostatInfoResolver from './resolvers/thermostat-info.resolver';
 
 interface ResolverDependencies {
     thermostatService: ThermostatService;
@@ -13,11 +14,14 @@ interface ResolverDependencies {
 export default async function graphqlResolvers(dependencies: ResolverDependencies): Promise<Resolvers> {
     const heatingScheduleResolver = new HeatingScheduleResolver(dependencies.homeController);
     const setHeatingTimeSlotMutationResolver = new SetHeatingScheduleMutationResolver(dependencies.homeController);
-    const thermostatInfoResolver = new ThermostatInfoResolver(dependencies.thermostatService);
+    const currentRoomInfoResolver = new CurrentRoomInfoResolver(dependencies.thermostatService);
+    const roomInfoResolver = new RoomInfoResolver(dependencies.thermostatService);
+
     return {
         Query: {
             heatingSchedule: heatingScheduleResolver.resolve,
-            thermostatInfo: thermostatInfoResolver.resolve,
+            currentRoomInfo: currentRoomInfoResolver.resolve,
+            roomInfo: roomInfoResolver.resolve,
         },
         Mutation: {
             setHeatingForTimeSlot: setHeatingTimeSlotMutationResolver.resolve,

@@ -33,6 +33,8 @@ interface RoomInfo {
     allowHeating: boolean;
 }
 
+export type DbRoomInfo = Omit<RoomInfo, 'allowHeating'> & { allowHeating: number };
+
 export class DatabaseConnector {
     private db: Database;
     constructor() {
@@ -195,6 +197,74 @@ export class DatabaseConnector {
                 }
                 resolve();
             });
+        });
+    }
+
+    public async getRoomInfoGrouped(date: string, resolution: 'HOUR' | 'TEN_MINUTES'): Promise<DbRoomInfo[]> {
+        const divider = resolution === 'TEN_MINUTES' ? 600 : 3600;
+        return new Promise((resolve, reject) => {
+            this.db.all(
+                `
+                SELECT
+                    MIN(timestamp) AS timestamp,
+                    date,
+                    deviceAddress,
+                    name,
+                    AVG(roomTemperature) AS roomTemperature,
+                    AVG(setpoint) AS setpoint,
+                    AVG(heatOutputPercentage) AS heatOutputPercentage,
+                    AVG(allowHeating) AS allowHeating
+                FROM
+                    RoomInfo
+                WHERE
+                    date = ?
+                GROUP BY 
+                    timestamp / ?,
+                    date,
+                    deviceAddress,
+                    name
+                ORDER BY
+                    deviceAddress,
+                    timestamp;`,
+                [date, divider],
+                (err, rows) => {
+                    if (err) {
+                        return reject(err);
+                    }
+                    resolve(rows);
+                },
+            );
+        });
+    }
+
+    public async getRoomInfo(date: string): Promise<DbRoomInfo[]> {
+        return new Promise((resolve, reject) => {
+            this.db.all(
+                `
+                SELECT
+                    timestamp,
+                    date,
+                    deviceAddress,
+                    name,
+                    roomTemperature,
+                    setpoint,
+                    heatOutputPercentage,
+                    allowHeating
+                FROM
+                    RoomInfo
+                WHERE
+                    date = ?
+                ORDER BY
+                    deviceAddress,
+                    timestamp;`,
+                [date],
+                (err, rows) => {
+                    if (err) {
+                        return reject(err);
+                    }
+                    resolve(rows);
+                },
+            );
         });
     }
 

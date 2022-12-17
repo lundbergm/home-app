@@ -1,7 +1,7 @@
 import { Schedule, TimeSlot } from '../models/models';
 import { IoService } from '../services/io.service';
 import { ScheduleService } from '../services/schedule.service';
-import { ThermostatInfo, ThermostatService } from '../services/thermostat.service';
+import { RoomInfo, ThermostatService } from '../services/thermostat.service';
 
 export class HomeController {
     constructor(
@@ -43,7 +43,7 @@ export class HomeController {
         );
     }
 
-    public getThermostatInfo(): Promise<ThermostatInfo[]> {
+    public getThermostatInfo(): Promise<RoomInfo[]> {
         return this.thermostatService.getThermostatStatus();
     }
     // public logCurrentState() {}

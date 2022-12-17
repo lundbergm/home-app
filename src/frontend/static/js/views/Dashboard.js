@@ -7,9 +7,8 @@ export default class extends AbstractView {
         this.js();
     }
 
-    async js() {
+    async js() {}
 
-    }
     async getSchedule(date) {
         const query = `
         query HeatingSchedule($date: String!) {
@@ -22,51 +21,86 @@ export default class extends AbstractView {
               energy
               tax
             }
-          }
-    `;
-    
-    const options = {
-        method: "post",
-        headers: {
-        "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-        query: query,
-        variables: {
-            date,
-        }
-        })
-    };
-    
-    const resp = await ( await fetch(`http://192.168.50.36:4000/api/graphql`, options)).json();
-    return resp.data.heatingSchedule
+        }`;
+        
+        const options = {
+            method: "post",
+            headers: {
+            "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                query: query,
+                variables: {
+                    date,
+                }
+            })
+        };
+        
+        const resp = await ( await fetch(this.params.baseUrl, options)).json();
+        return resp.data.heatingSchedule
     }
 
-    async getRoomInfo() {
+    async getCurrentRoomInfo() {
         const query = `
-        query ThermostatInfo {
-            thermostatInfo {
+        query CurrentRoomInfo {
+            currentRoomInfo {
               name
               roomTemperature
               setpoint
               heatOutputPercentage
               allowHeating
             }
-          }
-    `;
+          }`;
     
-    const options = {
-        method: "post",
-        headers: {
-        "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-        query: query,
-        })
-    };
+        const options = {
+            method: "post",
+            headers: {
+            "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                query: query,
+            })
+        };
+        
+        const resp = await ( await fetch(this.params.baseUrl, options)).json();
+        return resp.data.currentRoomInfo
+    }
     
-    const resp = await ( await fetch(`http://192.168.50.36:4000/api/graphql`, options)).json();
-    return resp.data.thermostatInfo
+    async getRoomInfo(date) {
+        const query = `
+        query RoomInfo($date: String!, $resolution: Resolution) {
+            roomInfo(date: $date, resolution: $resolution) {
+              date
+              rooms {
+                name
+                deviceAddress
+                nodes {
+                  timestamp
+                  temperature
+                  setpoint
+                  heatOutputPercentage
+                  allowHeating
+                }
+              }
+            }
+        }`;
+    
+        const options = {
+            method: "post",
+            headers: {
+            "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                query: query,
+                variables: {
+                    date,
+                    resolution: 'TEN_MINUTES',
+                }
+            })
+        };
+        
+        const resp = await ( await fetch(this.params.baseUrl, options)).json();
+        return resp.data.roomInfo
     }
 
     async renderCharts() {
@@ -74,15 +108,16 @@ export default class extends AbstractView {
         const dateStr = `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`;
         const schedule = await this.getSchedule(dateStr);
         const prices = schedule.map((e) => ((e.total * 100).toFixed(1)));
-        console.log((new Date().getHours() + new Date().getMinutes() / 60).toString());
-        var lineOptions = {
+        prices.push(prices[prices.length - 1]);
+
+        const priceChartOptions = {
             stroke: {
                 curve: 'stepline',
                 width: 3,
             },
             chart: {
                 width: '100%',
-                height: 250,
+                height: 200,
                 toolbar: {
                     show: false,
                   },
@@ -151,24 +186,24 @@ export default class extends AbstractView {
                     fontFamily: 'monospace'
                 },
                 x: {
-                    formatter: (value) => (`${value - 1}:00-${value === 24 ? 0 : value}:00`),
+                    formatter: (value) => (`${(value - 1) % 24}:00-${value % 24 }:00`),
                 },
                 y: {
                     formatter: (value) => (value + ' öre'),
                 },
             }
         }
-        var chart = new ApexCharts(document.querySelector('#chart'), lineOptions)
+        const chart = new ApexCharts(document.querySelector('#priceChart'), priceChartOptions)
         chart.render()
         
-        const roomInfo = await this.getRoomInfo();
-        const rooms = roomInfo.map((e) => (e.name));
-        const temperature = roomInfo.map((e) => (e.roomTemperature));
-        const setpoint = roomInfo.map((e) => (e.setpoint));
-        const heatOutputPercentage = roomInfo.map((e) => (e.heatOutputPercentage));
+        const currentRoomInfo = await this.getCurrentRoomInfo();
+        const rooms = currentRoomInfo.map((e) => (e.name));
+        const temperature = currentRoomInfo.map((e) => (e.roomTemperature));
+        const setpoint = currentRoomInfo.map((e) => (e.setpoint));
+        const heatOutputPercentage = currentRoomInfo.map((e) => (e.heatOutputPercentage));
         const maxValue = Math.max(...temperature, ...setpoint);
         const yAxisMaxValue = Math.max(Math.ceil(maxValue * 1.1), 25);
-        var roomOptions = {
+        const roomChartOptions = {
             series: [
                 {
                     name: 'Temperature',
@@ -203,6 +238,8 @@ export default class extends AbstractView {
                 enabled: false
             },
             legend: {
+                position: 'bottom',
+                offsetY: -20,
                 labels: {
                     colors: '#d3d3d3',
                 },
@@ -226,10 +263,15 @@ export default class extends AbstractView {
                         fontFamily: 'monospace',
                         fontWeight: 400,
                     },
-                    rotate: -35,
+                    rotate: -20,
                 },
             categories: rooms,
             },
+            grid: {
+                padding: {
+                  left: 5,
+                },
+              },
             yaxis: [
                 {
                     seriesName: 'Temperature',
@@ -238,6 +280,7 @@ export default class extends AbstractView {
                     min: 0,
                     max: yAxisMaxValue,
                     labels: {
+                        offsetX: -8,
                         style: {
                             colors: '#d3d3d3',
                             fontSize: '11px',
@@ -272,22 +315,257 @@ export default class extends AbstractView {
                         formatter: (value) => { return value.toFixed(0) },
                     },
 
-            }
-        ],
+                }
+            ],
             fill: {
-            opacity: 1
+                opacity: 1
             },
             tooltip: {
-            y: {
-                formatter: function (val) {
-                return val + " C"
-                }
-            }
+                style: {
+                    fontSize: '11px',
+                    fontFamily: 'monospace'
+                },
+                y: [
+                    {
+                        formatter: function (val) {
+                        return val + "&#176;C"
+                        }
+                    },
+                    {
+                        formatter: function (val) {
+                            return val + "&#176;C"
+                        }
+                    },
+                    {
+                        formatter: function (val) {
+                            return val + "%"
+                        }
+                    }
+                ]
             }
             };
   
-        var roomChart = new ApexCharts(document.querySelector("#roomChart"), roomOptions);
+        const roomChart = new ApexCharts(document.querySelector("#roomChart"), roomChartOptions);
         roomChart.render()
+
+        
+        const roomInfo = await this.getRoomInfo(date.toISOString().split('T')[0]);
+
+        const roomTempSeries = roomInfo.rooms.map(room => {
+            const roomSeries = {
+                name: room.name,
+                data: room.nodes.map(node => node.temperature)
+            }
+            if (roomSeries.data.length < 144) {
+                roomSeries.data = [...roomSeries.data, ...Array(144 - roomSeries.data.length).fill(0)]
+            }
+            return roomSeries;
+        });
+
+        const roomTempHistoryChartOptions = {
+            stroke: {
+                curve: 'smooth',
+                width: 3,
+            },
+            chart: {
+                width: '100%',
+                height: 200,
+                toolbar: {
+                    show: false,
+                  },
+                type: 'line',
+            },
+            series: roomTempSeries,
+            legend: {
+                position: 'bottom',
+                labels: {
+                    colors: '#d3d3d3',
+                },
+                fontSize: '11px',
+                fontFamily: 'monospace',
+                fontWeight: 400,
+            },
+            xaxis: {
+                type: 'numeric',
+                tickAmount: 12,
+                labels: {
+                    style: {
+                        colors: '#d3d3d3',
+                        fontSize: '11px',
+                        fontFamily: 'monospace',
+                        fontWeight: 400,
+                    },
+                    rotate: 0,
+                    formatter: (value) => { 
+                        return String(Math.floor((value + 1) / 6)).padStart(2, '0');
+                    },
+                },
+            },
+            yaxis: {
+                labels: {
+                    show: true,
+                    align: 'right',
+                    minWidth: 0,
+                    maxWidth: 25,
+                    style: {
+                        colors: '#d3d3d3',
+                        fontSize: '11px',
+                        fontFamily: 'monospace',
+                        fontWeight: 400,
+                        cssClass: 'apexcharts-yaxis-label',
+                    },
+                    formatter: (value) => { return value.toFixed(0) },
+                },
+            },
+            fill: {
+                opacity: 1
+            },
+            tooltip: {
+                style: {
+                    fontSize: '11px',
+                    fontFamily: 'monospace'
+                },
+                x: {
+                    formatter: (value) => (`
+                        ${String(Math.floor((value-1)/6)).padStart(2, '0') 
+                        }:${
+                        ((value-1)%6).toFixed(0) + '0'
+                        }-${
+                        String(Math.floor((value)/6)).padStart(2, '0') 
+                        }:${
+                        ((value)%6 ).toFixed(0) + '0'}`),
+                },
+                y: {
+                    formatter: function (val) {
+                    return val + "&#176;C"
+                    }
+                },
+            }
+        };
+  
+        const roomTempHistoryChart = new ApexCharts(document.querySelector("#roomTempHistoryChart"), roomTempHistoryChartOptions);
+        roomTempHistoryChart.render()
+
+        const heatOutputPercentageSeries = roomInfo.rooms.map(room => {
+            const roomSeries = {
+                name: room.name,
+                data: room.nodes.map(node => node.heatOutputPercentage),
+                type: 'line',
+            }
+            if (roomSeries.data.length < 144) {
+                roomSeries.data = [...roomSeries.data, ...Array(144 - roomSeries.data.length).fill(0)]
+            }
+            return roomSeries;
+        });
+        const roomOutputHistoryChartOptions = {
+            stroke: {
+                curve: 'smooth',
+                width: [...Array(roomInfo.rooms.length).fill(3), 0],
+            },
+            chart: {
+                width: '100%',
+                height: 200,
+                toolbar: {
+                    show: false,
+                  },
+                type: 'area',
+            },
+            dataLabels: {
+                enabled: false
+            },
+            series: [
+                ...heatOutputPercentageSeries,
+                {
+                    name: 'No heating',
+                    data: roomInfo.rooms[0].nodes.map(node => node.allowHeating ? 0 : 105),
+                    type: 'area',
+                }
+            ],
+            fill: {
+                colors: ["#FF0000"],
+                type: [...Array(roomInfo.rooms.length).fill('solid'), 'gradient'] ,
+                gradient: {
+                    shade: 'dark',
+                    type: "horizontal",
+                    shadeIntensity: 0.5,
+                    gradientToColors: undefined,
+                    inverseColors: true,
+                    opacityFrom: 0.6,
+                    opacityTo: 0.6,
+                },
+            },
+            legend: {
+                markers: {
+                    fillColors: [...Array(roomInfo.rooms.length).fill(undefined), '#701c24']
+                },
+                position: 'bottom',
+                labels: {
+                    colors: '#d3d3d3',
+                },
+                fontSize: '11px',
+                fontFamily: 'monospace',
+                fontWeight: 400,
+            },
+            xaxis: {
+                type: 'numeric',
+                tickAmount: 12,
+                labels: {
+                    style: {
+                        colors: '#d3d3d3',
+                        fontSize: '11px',
+                        fontFamily: 'monospace',
+                        fontWeight: 400,
+                    },
+                    rotate: 0,
+                    formatter: (value) => { 
+                        return String(Math.floor((value + 1) / 6)).padStart(2, '0');
+                    },
+                },
+            },
+            yaxis: {
+                tickAmount: 5,
+                min: 0,
+                max: 100,
+                labels: {
+                    show: true,
+                    align: 'right',
+                    minWidth: 0,
+                    maxWidth: 25,
+                    style: {
+                        colors: '#d3d3d3',
+                        fontSize: '11px',
+                        fontFamily: 'monospace',
+                        fontWeight: 400,
+                        cssClass: 'apexcharts-yaxis-label',
+                    },
+                    formatter: (value) => { return value.toFixed(0) },
+                },
+            },
+            tooltip: {
+                style: {
+                    fontSize: '11px',
+                    fontFamily: 'monospace'
+                },
+                x: {
+                    formatter: (value) => (`
+                        ${String(Math.floor((value-1)/6)).padStart(2, '0') 
+                        }:${
+                        ((value-1)%6).toFixed(0) + '0'
+                        }-${
+                        String(Math.floor((value)/6)).padStart(2, '0') 
+                        }:${
+                        ((value)%6 ).toFixed(0) + '0'}`),
+                },
+                y: {
+                    formatter: function (val) {
+                    return val + "%"
+                    }
+                },
+            }
+        };
+  
+        const roomOutputHistoryChart = new ApexCharts(document.querySelector("#roomOutputHistoryChart"), roomOutputHistoryChartOptions);
+        roomOutputHistoryChart.render()
     }
 
     async render() {
@@ -297,10 +575,14 @@ export default class extends AbstractView {
 
     async getHtml() {
         return `
-        <div id="chart" class="Chart">
+        <div id="priceChart" class="Chart" style="margin-bottom:-30px;">
         </div>
         </br>
-        <div id="roomChart" class="Chart">
+        <div id="roomChart" class="Chart" style="margin-bottom:-30px;">
+        </div>
+        <div id="roomTempHistoryChart" class="Chart">
+        </div>
+        <div id="roomOutputHistoryChart" class="Chart">
         </div>
         `;
     }

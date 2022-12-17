@@ -9,9 +9,16 @@ const typeDefs = gql`
         heatingSchedule(date: String!): [TimeSlot!]!
 
         """
-        Current thermostat info.
+        Current room info.
+        Room temperature, setpoint, heat output percentage and if heating is allowed.
         """
-        thermostatInfo: [ThermostatInfo!]!
+        currentRoomInfo: [CurrentRoomInfo!]!
+
+        """
+        Room info per day.
+        Room temperature, setpoint, heat output percentage and if heating is allowed.
+        """
+        roomInfo(date: String!, resolution: Resolution): RoomInfo!
     }
 
     type Mutation {
@@ -21,10 +28,35 @@ const typeDefs = gql`
         setHeatingForTimeSlot(id: Int!, state: State!): TimeSlot!
     }
 
-    type ThermostatInfo {
+    enum Resolution {
+        HOUR
+        TEN_MINUTES
+        MINUTE
+    }
+
+    type CurrentRoomInfo {
         name: String!
         deviceAddress: Int!
         roomTemperature: Float!
+        setpoint: Float!
+        heatOutputPercentage: Int!
+        allowHeating: Boolean
+    }
+
+    type RoomInfo {
+        date: String!
+        rooms: [Room!]!
+    }
+
+    type Room {
+        name: String!
+        deviceAddress: Int!
+        nodes: [RoomInfoNode!]!
+    }
+
+    type RoomInfoNode {
+        timestamp: Int!
+        temperature: Float!
         setpoint: Float!
         heatOutputPercentage: Int!
         allowHeating: Boolean!

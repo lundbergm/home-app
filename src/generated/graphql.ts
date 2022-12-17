@@ -15,6 +15,16 @@ export type Scalars = {
   Float: number;
 };
 
+export type CurrentRoomInfo = {
+  __typename?: 'CurrentRoomInfo';
+  name: Scalars['String'];
+  deviceAddress: Scalars['Int'];
+  roomTemperature: Scalars['Float'];
+  setpoint: Scalars['Float'];
+  heatOutputPercentage: Scalars['Int'];
+  allowHeating?: Maybe<Scalars['Boolean']>;
+};
+
 export enum Interval {
   /** Data for today */
   Today = 'TODAY',
@@ -54,8 +64,16 @@ export type Query = {
    * Date as "yyyy-MM-dd".
    */
   heatingSchedule: Array<TimeSlot>;
-  /** Current thermostat info. */
-  thermostatInfo: Array<ThermostatInfo>;
+  /**
+   * Current room info.
+   * Room temperature, setpoint, heat output percentage and if heating is allowed.
+   */
+  currentRoomInfo: Array<CurrentRoomInfo>;
+  /**
+   * Room info per day.
+   * Room temperature, setpoint, heat output percentage and if heating is allowed.
+   */
+  roomInfo: RoomInfo;
 };
 
 
@@ -63,20 +81,44 @@ export type QueryHeatingScheduleArgs = {
   date: Scalars['String'];
 };
 
-export enum State {
-  On = 'ON',
-  Off = 'OFF'
+
+export type QueryRoomInfoArgs = {
+  date: Scalars['String'];
+  resolution?: Maybe<Resolution>;
+};
+
+export enum Resolution {
+  Hour = 'HOUR',
+  TenMinutes = 'TEN_MINUTES',
+  Minute = 'MINUTE'
 }
 
-export type ThermostatInfo = {
-  __typename?: 'ThermostatInfo';
+export type Room = {
+  __typename?: 'Room';
   name: Scalars['String'];
   deviceAddress: Scalars['Int'];
-  roomTemperature: Scalars['Float'];
+  nodes: Array<RoomInfoNode>;
+};
+
+export type RoomInfo = {
+  __typename?: 'RoomInfo';
+  date: Scalars['String'];
+  rooms: Array<Room>;
+};
+
+export type RoomInfoNode = {
+  __typename?: 'RoomInfoNode';
+  timestamp: Scalars['Int'];
+  temperature: Scalars['Float'];
   setpoint: Scalars['Float'];
   heatOutputPercentage: Scalars['Int'];
   allowHeating: Scalars['Boolean'];
 };
+
+export enum State {
+  On = 'ON',
+  Off = 'OFF'
+}
 
 export type TimeSlot = {
   __typename?: 'TimeSlot';
@@ -167,29 +209,46 @@ export type DirectiveResolverFn<TResult = {}, TParent = {}, TContext = {}, TArgs
 
 /** Mapping between all available schema types and the resolvers types */
 export type ResolversTypes = {
-  Interval: Interval;
-  Mutation: ResolverTypeWrapper<{}>;
-  Int: ResolverTypeWrapper<Scalars['Int']>;
-  PriceLevel: PriceLevel;
-  Query: ResolverTypeWrapper<{}>;
+  CurrentRoomInfo: ResolverTypeWrapper<CurrentRoomInfo>;
   String: ResolverTypeWrapper<Scalars['String']>;
-  State: State;
-  ThermostatInfo: ResolverTypeWrapper<ThermostatInfo>;
+  Int: ResolverTypeWrapper<Scalars['Int']>;
   Float: ResolverTypeWrapper<Scalars['Float']>;
   Boolean: ResolverTypeWrapper<Scalars['Boolean']>;
+  Interval: Interval;
+  Mutation: ResolverTypeWrapper<{}>;
+  PriceLevel: PriceLevel;
+  Query: ResolverTypeWrapper<{}>;
+  Resolution: Resolution;
+  Room: ResolverTypeWrapper<Room>;
+  RoomInfo: ResolverTypeWrapper<RoomInfo>;
+  RoomInfoNode: ResolverTypeWrapper<RoomInfoNode>;
+  State: State;
   TimeSlot: ResolverTypeWrapper<TimeSlot>;
 };
 
 /** Mapping between all available schema types and the resolvers parents */
 export type ResolversParentTypes = {
-  Mutation: {};
-  Int: Scalars['Int'];
-  Query: {};
+  CurrentRoomInfo: CurrentRoomInfo;
   String: Scalars['String'];
-  ThermostatInfo: ThermostatInfo;
+  Int: Scalars['Int'];
   Float: Scalars['Float'];
   Boolean: Scalars['Boolean'];
+  Mutation: {};
+  Query: {};
+  Room: Room;
+  RoomInfo: RoomInfo;
+  RoomInfoNode: RoomInfoNode;
   TimeSlot: TimeSlot;
+};
+
+export type CurrentRoomInfoResolvers<ContextType = Context, ParentType extends ResolversParentTypes['CurrentRoomInfo'] = ResolversParentTypes['CurrentRoomInfo']> = {
+  name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  deviceAddress?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  roomTemperature?: Resolver<ResolversTypes['Float'], ParentType, ContextType>;
+  setpoint?: Resolver<ResolversTypes['Float'], ParentType, ContextType>;
+  heatOutputPercentage?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  allowHeating?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
 export type MutationResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']> = {
@@ -198,13 +257,26 @@ export type MutationResolvers<ContextType = Context, ParentType extends Resolver
 
 export type QueryResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = {
   heatingSchedule?: Resolver<Array<ResolversTypes['TimeSlot']>, ParentType, ContextType, RequireFields<QueryHeatingScheduleArgs, 'date'>>;
-  thermostatInfo?: Resolver<Array<ResolversTypes['ThermostatInfo']>, ParentType, ContextType>;
+  currentRoomInfo?: Resolver<Array<ResolversTypes['CurrentRoomInfo']>, ParentType, ContextType>;
+  roomInfo?: Resolver<ResolversTypes['RoomInfo'], ParentType, ContextType, RequireFields<QueryRoomInfoArgs, 'date'>>;
 };
 
-export type ThermostatInfoResolvers<ContextType = Context, ParentType extends ResolversParentTypes['ThermostatInfo'] = ResolversParentTypes['ThermostatInfo']> = {
+export type RoomResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Room'] = ResolversParentTypes['Room']> = {
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   deviceAddress?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
-  roomTemperature?: Resolver<ResolversTypes['Float'], ParentType, ContextType>;
+  nodes?: Resolver<Array<ResolversTypes['RoomInfoNode']>, ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type RoomInfoResolvers<ContextType = Context, ParentType extends ResolversParentTypes['RoomInfo'] = ResolversParentTypes['RoomInfo']> = {
+  date?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  rooms?: Resolver<Array<ResolversTypes['Room']>, ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type RoomInfoNodeResolvers<ContextType = Context, ParentType extends ResolversParentTypes['RoomInfoNode'] = ResolversParentTypes['RoomInfoNode']> = {
+  timestamp?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  temperature?: Resolver<ResolversTypes['Float'], ParentType, ContextType>;
   setpoint?: Resolver<ResolversTypes['Float'], ParentType, ContextType>;
   heatOutputPercentage?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   allowHeating?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
@@ -224,9 +296,12 @@ export type TimeSlotResolvers<ContextType = Context, ParentType extends Resolver
 };
 
 export type Resolvers<ContextType = Context> = {
+  CurrentRoomInfo?: CurrentRoomInfoResolvers<ContextType>;
   Mutation?: MutationResolvers<ContextType>;
   Query?: QueryResolvers<ContextType>;
-  ThermostatInfo?: ThermostatInfoResolvers<ContextType>;
+  Room?: RoomResolvers<ContextType>;
+  RoomInfo?: RoomInfoResolvers<ContextType>;
+  RoomInfoNode?: RoomInfoNodeResolvers<ContextType>;
   TimeSlot?: TimeSlotResolvers<ContextType>;
 };
 
