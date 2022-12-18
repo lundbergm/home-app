@@ -1,6 +1,6 @@
 import AbstractView from './AbstractView.js';
 
-const N_ROOMS = 5;
+const N_ROOMS = 8;
 
 export default class extends AbstractView {
     constructor(params) {
