@@ -30,6 +30,9 @@ const THERMOSTATS: Array<{
     { name: 'M', deviceAddress: 169 },
     { name: 'Sovrum', deviceAddress: 15, backlight: 0 },
     { name: 'Hall', deviceAddress: 113 },
+    { name: 'S', deviceAddress: 122 },
+    { name: 'Badrum', deviceAddress: 45 },
+    { name: 'Tvättstuga', deviceAddress: 1 },
 ];
 
 export type Context = Record<string, unknown>;
