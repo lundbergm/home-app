@@ -1,3 +1,45 @@
-/* .apexcharts-legend-text {
-    color: white important;
-} */
+
+
+.date-container ul {
+    padding: 0;
+    color: #d3d3d3;
+    font-size: 11px;
+    font-family: monospace;
+    font-weight: 800;
+    z-index: 999999999;
+}
+.date-container ul.nav {
+    width: 80%;
+    margin: 0 auto 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border: 1px solid #1793d1;
+
+    border-radius: 2rem;
+    @media (max-width: 768px) {
+        width: 90%;
+    }
+}
+.date-container ul.nav li {
+    padding: 0.5rem;
+    list-style: none;
+    text-align: center;
+    cursor: pointer;
+    transition: all 1.5s;
+    border-bottom-left-radius: 2rem;
+    border-top-left-radius: 2rem;
+}
+.date-container ul.nav li:nth-child(3) {
+    border-radius: 0;
+    border-bottom-right-radius: 2rem;
+    border-top-right-radius: 2rem;
+}
+.date-container ul.nav li.active {
+    background: #1793d1;
+}
+
+.date-container .date-nav {
+    width: 20%;
+    background-color: #1793d1;
+}

@@ -1,13 +1,32 @@
 import AbstractView from './AbstractView.js';
 
+const N_ROOMS = 5;
+
 export default class extends AbstractView {
     constructor(params) {
         super(params);
         this.setTitle("Dashboard");
         this.js();
+        this.date = new Date();
     }
 
-    async js() {}
+    async js() {
+        document.body.addEventListener("click", e => {
+            if (e.target.matches('#next-date')) {
+                handleClick(1)
+            } else if (e.target.matches('#prev-date')) {
+                handleClick(-1)
+            }
+        });
+
+        const handleClick = async (deltaDays) => {
+            this.date.setDate(this.date.getDate() + deltaDays);
+            document.getElementById('date').innerHTML = this.date.toISOString().split('T')[0];
+            await this.updatePriceChart(this.date);
+            await this.updateRoomInfoCharts(this.date);
+        }
+    }
+
 
     async getSchedule(date) {
         const query = `
@@ -103,13 +122,19 @@ export default class extends AbstractView {
         return resp.data.roomInfo
     }
 
-    async renderCharts() {
-        const date = new Date();
+    async updatePriceChart(date) {
         const dateStr = `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`;
         const schedule = await this.getSchedule(dateStr);
         const prices = schedule.map((e) => ((e.total * 100).toFixed(1)));
         prices.push(prices[prices.length - 1]);
+        this.priceChart.updateSeries([
+            {
+                name: 'Test',
+                data: prices
+            }]);
+    }
 
+    async renderPriceChart() {
         const priceChartOptions = {
             stroke: {
                 curve: 'stepline',
@@ -123,12 +148,10 @@ export default class extends AbstractView {
                   },
                 type: 'line',
             },
-            series: [
-              {
-                name: '',
-                data: prices
-              }
-            ],
+            noData: {
+                text: 'Loading...'
+            },
+            series: [],
             annotations: {
                 xaxis: [
                   {
@@ -193,9 +216,11 @@ export default class extends AbstractView {
                 },
             }
         }
-        const chart = new ApexCharts(document.querySelector('#priceChart'), priceChartOptions)
-        chart.render()
-        
+        this.priceChart = new ApexCharts(document.querySelector('#priceChart'), priceChartOptions)
+        this.priceChart.render()
+    }
+
+    async renderCurrentChart() {
         const currentRoomInfo = await this.getCurrentRoomInfo();
         const rooms = currentRoomInfo.map((e) => (e.name));
         const temperature = currentRoomInfo.map((e) => (e.roomTemperature));
@@ -347,20 +372,50 @@ export default class extends AbstractView {
   
         const roomChart = new ApexCharts(document.querySelector("#roomChart"), roomChartOptions);
         roomChart.render()
+    }
 
-        
+    async updateRoomInfoCharts(date) {
+        this.roomTempHistoryChart.updateSeries([]);
+        this.roomOutputHistoryChart.updateSeries([]);
+
         const roomInfo = await this.getRoomInfo(date.toISOString().split('T')[0]);
-
+    
         const roomTempSeries = roomInfo.rooms.map(room => {
             const roomSeries = {
                 name: room.name,
                 data: room.nodes.map(node => node.temperature)
             }
             if (roomSeries.data.length < 144) {
-                roomSeries.data = [...roomSeries.data, ...Array(144 - roomSeries.data.length).fill(0)]
+                roomSeries.data = [...roomSeries.data, ...Array(144 - roomSeries.data.length).fill(null)]
             }
             return roomSeries;
         });
+
+        this.roomTempHistoryChart.updateSeries(roomTempSeries);
+
+        const heatOutputPercentageSeries = roomInfo.rooms.map(room => {
+            const roomSeries = {
+                name: room.name,
+                data: room.nodes.map(node => node.heatOutputPercentage),
+                type: 'line',
+            }
+            if (roomSeries.data.length < 144) {
+                roomSeries.data = [...roomSeries.data, ...Array(144 - roomSeries.data.length).fill(null)]
+            }
+            return roomSeries;
+        });
+
+        this.roomOutputHistoryChart.updateSeries([
+            ...heatOutputPercentageSeries,
+            {
+                name: 'No heating',
+                data: roomInfo.rooms[0].nodes.map(node => node.allowHeating ? 0 : 105),
+                type: 'area',
+            }
+        ]);
+    }
+
+    async renderRoomInfoCharts() {
 
         const roomTempHistoryChartOptions = {
             stroke: {
@@ -375,7 +430,16 @@ export default class extends AbstractView {
                   },
                 type: 'line',
             },
-            series: roomTempSeries,
+            noData: {
+                text: 'Loading...',
+                style: {
+                    color: '#d3d3d3',
+                    fontSize: '11px',
+                    fontFamily: 'monospace',
+                    fontWeight: 400,
+                },
+            },
+            series: [],
             legend: {
                 position: 'bottom',
                 labels: {
@@ -400,6 +464,9 @@ export default class extends AbstractView {
                         return String(Math.floor((value + 1) / 6)).padStart(2, '0');
                     },
                 },
+                tooltip: {
+                    enabled: false,
+                }
             },
             yaxis: {
                 labels: {
@@ -437,30 +504,23 @@ export default class extends AbstractView {
                 },
                 y: {
                     formatter: function (val) {
-                    return val + "&#176;C"
+                        if(val === null ) {
+                            return "-"
+                        }
+                        return val + "&#176;C"
                     }
                 },
             }
         };
   
-        const roomTempHistoryChart = new ApexCharts(document.querySelector("#roomTempHistoryChart"), roomTempHistoryChartOptions);
-        roomTempHistoryChart.render()
+        this.roomTempHistoryChart = new ApexCharts(document.querySelector("#roomTempHistoryChart"), roomTempHistoryChartOptions);
+        this.roomTempHistoryChart.render()
 
-        const heatOutputPercentageSeries = roomInfo.rooms.map(room => {
-            const roomSeries = {
-                name: room.name,
-                data: room.nodes.map(node => node.heatOutputPercentage),
-                type: 'line',
-            }
-            if (roomSeries.data.length < 144) {
-                roomSeries.data = [...roomSeries.data, ...Array(144 - roomSeries.data.length).fill(0)]
-            }
-            return roomSeries;
-        });
+        
         const roomOutputHistoryChartOptions = {
             stroke: {
                 curve: 'smooth',
-                width: [...Array(roomInfo.rooms.length).fill(3), 0],
+                width: [...Array(N_ROOMS).fill(3), 0],
             },
             chart: {
                 width: '100%',
@@ -473,17 +533,19 @@ export default class extends AbstractView {
             dataLabels: {
                 enabled: false
             },
-            series: [
-                ...heatOutputPercentageSeries,
-                {
-                    name: 'No heating',
-                    data: roomInfo.rooms[0].nodes.map(node => node.allowHeating ? 0 : 105),
-                    type: 'area',
-                }
-            ],
+            noData: {
+                text: 'Loading...',
+                style: {
+                    color: '#d3d3d3',
+                    fontSize: '11px',
+                    fontFamily: 'monospace',
+                    fontWeight: 400,
+                },
+            },
+            series: [],
             fill: {
                 colors: ["#FF0000"],
-                type: [...Array(roomInfo.rooms.length).fill('solid'), 'gradient'] ,
+                type: [...Array(N_ROOMS).fill('solid'), 'gradient'] ,
                 gradient: {
                     shade: 'dark',
                     type: "horizontal",
@@ -496,7 +558,7 @@ export default class extends AbstractView {
             },
             legend: {
                 markers: {
-                    fillColors: [...Array(roomInfo.rooms.length).fill(undefined), '#701c24']
+                    fillColors: [...Array(N_ROOMS).fill(undefined), '#701c24']
                 },
                 position: 'bottom',
                 labels: {
@@ -521,6 +583,9 @@ export default class extends AbstractView {
                         return String(Math.floor((value + 1) / 6)).padStart(2, '0');
                     },
                 },
+                tooltip: {
+                    enabled: false,
+                }
             },
             yaxis: {
                 tickAmount: 5,
@@ -558,27 +623,41 @@ export default class extends AbstractView {
                 },
                 y: {
                     formatter: function (val) {
-                    return val + "%"
+                        if(val === null ) {
+                            return "-"
+                        }
+                        return val + "%"
                     }
                 },
             }
         };
   
-        const roomOutputHistoryChart = new ApexCharts(document.querySelector("#roomOutputHistoryChart"), roomOutputHistoryChartOptions);
-        roomOutputHistoryChart.render()
+        this.roomOutputHistoryChart = new ApexCharts(document.querySelector("#roomOutputHistoryChart"), roomOutputHistoryChartOptions);
+        this.roomOutputHistoryChart.render()
     }
 
     async render() {
         this.container.innerHTML = await this.getHtml();
-        this.renderCharts();
+        await this.renderCurrentChart();
+        await this.renderPriceChart(this.date);
+        await this.renderRoomInfoCharts();
+        await this.updatePriceChart(this.date);
+        await this.updateRoomInfoCharts(this.date);
     }
 
     async getHtml() {
         return `
-        <div id="priceChart" class="Chart" style="margin-bottom:-30px;">
+        <div id="roomChart" class="Chart" style="margin-bottom:0px;">
         </div>
         </br>
-        <div id="roomChart" class="Chart" style="margin-bottom:-30px;">
+        <div class="date-container">
+            <ul class="nav">
+                <li id="prev-date" class="date-nav"><</li>
+                <li id="date" >2022-12-18</li>
+                <li id="next-date" class="date-nav">></li>
+            </ul>
+        </div>
+        <div id="priceChart" class="Chart" style="margin-bottom:-30px;">
         </div>
         <div id="roomTempHistoryChart" class="Chart">
         </div>

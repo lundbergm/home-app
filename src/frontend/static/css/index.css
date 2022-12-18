@@ -5,6 +5,13 @@ body {
     font-family: 'Quicksand', sans-serif;
     font-size: 18px;
     background-color: #282c34;
+    -webkit-user-select: none; /* Safari */
+    -ms-user-select: none; /* IE 10 and IE 11 */
+    user-select: none; /* Standard syntax */
+}
+html, body {
+    max-width: 100%;
+    overflow-x: hidden;
 }
 
 /* .nav {
