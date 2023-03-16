@@ -422,6 +422,7 @@ export default class extends AbstractView {
                 curve: 'smooth',
                 width: 3,
             },
+            colors: ["#e60049", "#0bb4ff", "#50e991", "#e6d800", "#9b19f5", "#ffa300", "#dc0ab4", "#b3d4ff", "#00bfa0"],
             chart: {
                 width: '100%',
                 height: 200,
@@ -485,7 +486,7 @@ export default class extends AbstractView {
                 },
             },
             fill: {
-                opacity: 1
+                opacity: 1,
             },
             tooltip: {
                 style: {
@@ -522,6 +523,7 @@ export default class extends AbstractView {
                 curve: 'smooth',
                 width: [...Array(N_ROOMS).fill(3), 0],
             },
+            colors: ["#e60049", "#0bb4ff", "#50e991", "#e6d800", "#9b19f5", "#ffa300", "#dc0ab4", "#b3d4ff", "#00bfa0"],
             chart: {
                 width: '100%',
                 height: 200,
@@ -653,7 +655,7 @@ export default class extends AbstractView {
         <div class="date-container">
             <ul class="nav">
                 <li id="prev-date" class="date-nav"><</li>
-                <li id="date" >2022-12-18</li>
+                <li id="date" >${this.date.toISOString().split('T')[0]}</li>q
                 <li id="next-date" class="date-nav">></li>
             </ul>
         </div>

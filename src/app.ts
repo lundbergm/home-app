@@ -25,14 +25,14 @@ const THERMOSTATS: Array<{
     writeBaseConfig?: boolean;
     backlight?: 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10;
 }> = [
-    { name: 'Vardagsrum', deviceAddress: 139, backlight: 1 },
-    { name: 'Kök', deviceAddress: 124 },
-    { name: 'M', deviceAddress: 169 },
-    { name: 'Sovrum', deviceAddress: 15, backlight: 0 },
-    { name: 'Hall', deviceAddress: 113 },
-    { name: 'S', deviceAddress: 122 },
-    { name: 'Badrum', deviceAddress: 45 },
-    { name: 'Tvättstuga', deviceAddress: 1 },
+    { name: 'Vardagsrum', deviceAddress: 139, writeBaseConfig: true, backlight: 1 },
+    { name: 'Kök', deviceAddress: 124, writeBaseConfig: true },
+    { name: 'M', deviceAddress: 169, writeBaseConfig: true },
+    { name: 'Sovrum', deviceAddress: 15, writeBaseConfig: true, backlight: 0 },
+    { name: 'Hall', deviceAddress: 113, writeBaseConfig: true },
+    { name: 'S', deviceAddress: 122, writeBaseConfig: true },
+    { name: 'Badrum', deviceAddress: 45, writeBaseConfig: true },
+    { name: 'Tvättstuga', deviceAddress: 1, writeBaseConfig: true },
 ];
 
 export type Context = Record<string, unknown>;
