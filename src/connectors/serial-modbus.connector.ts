@@ -35,8 +35,12 @@ export class SerialModbusConnector {
 
     public async close(): Promise<void> {
         console.log('Closing serial port...');
-        return new Promise((resolve) => {
-            this.client.close(resolve);
+        await new Promise<void>((resolve) => {
+            if (this?.client !== undefined) {
+                this.client.close(resolve);
+            } else {
+                resolve();
+            }
         });
     }
 
